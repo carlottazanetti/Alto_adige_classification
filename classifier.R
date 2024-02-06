@@ -78,7 +78,22 @@ rst_lst <- lapply(sentinel, FUN = raster)
 #Visualize the image in Natural Color (R = Red, G = Green, B = Blue).
 suppressWarnings({viewRGB(brick(rst_lst[1:3]), r = 3, g = 2, b = 1)})
 
+#Resampling bands so that they all have a 10m resolution
+rst_for_prediction <- vector(mode = "list", length = length(rst_lst))
+names(rst_for_prediction) <- names(rst_lst)
 
+for (b in c("B05", "B06", "B07", "B8A", "B11", "B12")){
+  beginCluster(n = round(3/4 * detectCores()))
+  try(
+    rst_for_prediction[[b]] <- raster::resample(x = rst_lst[[b]],
+                                                y = rst_lst$B02)
+  )
+  endCluster()
+}
+
+b_10m <- c("B02", "B03", "B04", "B08")
+rst_for_prediction[b_10m] <- rst_crop_lst[b_10m]
+brick_for_prediction <- brick(rst_for_prediction)
 
 
 
