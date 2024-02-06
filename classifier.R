@@ -65,8 +65,6 @@ install.packages('snow')
 install.packages('parallel')
 ####
 
-# set the temporary folder for raster package operations
-rasterOptions(tmpdir = "./cache/temp")
 
 # Path to tiff files
 data_path='C:/Users/carlo/Desktop/tesi/tesi_davvero/sentinel2/unzipped'
@@ -75,6 +73,15 @@ sentinel <- c(list.files(paste0(data_path), pattern = ".*B.*[2345678].*tiff", fu
               'C:/Users/carlo/Desktop/tesi/tesi_davvero/sentinel2/unzipped/B11_(Raw).tiff')
 rst_lst <- lapply(sentinel, FUN = raster)
 
+#Reorganizing the bands in the right order
+b_08A <- rst_lst[[9]]
+b_11 <- rst_lst[[10]]
+b_12 <- rst_lst[[8]]
+
+bands_names <- c("B02","B03","B04","B05","B06", "B07","B08", "B8A", "B11", "B12")
+names(rst_lst) <- bands_names
+
+
 #Visualize the image in Natural Color (R = Red, G = Green, B = Blue).
 suppressWarnings({viewRGB(brick(rst_lst[1:3]), r = 3, g = 2, b = 1)})
 
@@ -82,17 +89,16 @@ suppressWarnings({viewRGB(brick(rst_lst[1:3]), r = 3, g = 2, b = 1)})
 rst_for_prediction <- vector(mode = "list", length = length(rst_lst))
 names(rst_for_prediction) <- names(rst_lst)
 
-#"B05","B06", "B07", "B8A", "B11", "B12"
-i <-  1
-index <- c("B05","B06", "B07", "B8A", "B11", "B12")
-for (b in c(4, 5, 6, 9, 10, 8)){
+rst_for_prediction <- vector(mode = "list", length = length(rst_crop_lst))
+names(rst_for_prediction) <- names(rst_crop_lst)
+
+for (b in c("B05", "B06", "B07", "B8A", "B11", "B12")){
   beginCluster(n = round(3/4 * detectCores()))
   try(
-    rst_for_prediction[[index[[i]]]] <- raster::resample(x = rst_lst[[b]],
-                                                y = rst_lst[[1]])
+    rst_for_prediction[[b]] <- raster::resample(x = rst_crop_lst[[b]],
+                                                y = rst_crop_lst$B02)
   )
   endCluster()
-  i <- i+1
 }
 
 b_10m <- c("B02", "B03", "B04", "B08")
