@@ -93,13 +93,8 @@ rst_for_prediction <- vector(mode = "list", length = length(rst_crop_lst))
 names(rst_for_prediction) <- names(rst_crop_lst)
 
 for (b in c("B05", "B06", "B07", "B8A", "B11", "B12")){
-  beginCluster(n = round(3/4 * detectCores()))
-  try(
     rst_for_prediction[[b]] <- raster::resample(x = rst_crop_lst[[b]],
-                                                y = rst_crop_lst$B02)
-  )
-  endCluster()
-}
+                                                y = rst_crop_lst$B02)}
 
 b_10m <- c("B02", "B03", "B04", "B08")
 rst_for_prediction[b_10m] <- rst_crop_lst[b_10m]
