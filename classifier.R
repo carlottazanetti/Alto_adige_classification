@@ -82,13 +82,17 @@ suppressWarnings({viewRGB(brick(rst_lst[1:3]), r = 3, g = 2, b = 1)})
 rst_for_prediction <- vector(mode = "list", length = length(rst_lst))
 names(rst_for_prediction) <- names(rst_lst)
 
-for (b in c("B05", "B06", "B07", "B8A", "B11", "B12")){
+#"B05","B06", "B07", "B8A", "B11", "B12"
+i <-  1
+index <- c("B05","B06", "B07", "B8A", "B11", "B12")
+for (b in c(4, 5, 6, 9, 10, 8)){
   beginCluster(n = round(3/4 * detectCores()))
   try(
-    rst_for_prediction[[b]] <- raster::resample(x = rst_lst[[b]],
-                                                y = rst_lst$B02)
+    rst_for_prediction[[index[[i]]]] <- raster::resample(x = rst_lst[[b]],
+                                                y = rst_lst[[1]])
   )
   endCluster()
+  i <- i+1
 }
 
 b_10m <- c("B02", "B03", "B04", "B08")
