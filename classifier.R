@@ -89,16 +89,29 @@ suppressWarnings({viewRGB(brick(rst_lst[1:3]), r = 3, g = 2, b = 1)})
 rst_for_prediction <- vector(mode = "list", length = length(rst_lst))
 names(rst_for_prediction) <- names(rst_lst)
 
-rst_for_prediction <- vector(mode = "list", length = length(rst_crop_lst))
-names(rst_for_prediction) <- names(rst_crop_lst)
-
 for (b in c("B05", "B06", "B07", "B8A", "B11", "B12")){
-    rst_for_prediction[[b]] <- raster::resample(x = rst_crop_lst[[b]],
-                                                y = rst_crop_lst$B02)}
+    rst_for_prediction[[b]] <- raster::resample(x = rst_lst[[b]],
+                                                y = rst_lst$B02)}
 
 b_10m <- c("B02", "B03", "B04", "B08")
-rst_for_prediction[b_10m] <- rst_crop_lst[b_10m]
+rst_for_prediction[b_10m] <- rst_lst[b_10m]
+#se usi stack invece che brick non funziona?
 brick_for_prediction <- brick(rst_for_prediction)
+
+#importing the shp file of the woods in area A
+poly_boschi_A<-shapefile('C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/boschi_A_31N.shp')
+poly_boschi_A@data$id <- as.integer(factor(poly_boschi_A@data$id))
+setDT(poly_boschi_A@data)
+
+#setting the coordinates from m to km so that they match the extent of the sentinel image
+poly_boschi_A <- sp::spTransform(poly_boschi_A,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
+
+#only focusing on the area where the polygons are
+brick_for_prediction <-crop(brick_for_prediction, poly_boschi_A)
+
+
+
+
 
 
 
