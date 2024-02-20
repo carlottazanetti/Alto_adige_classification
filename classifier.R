@@ -261,7 +261,9 @@ model_rf <- caret::train(class ~ . , method = "rf", data = dt_train, #neural net
 #saving the model
 saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/tesi_davvero/modello","model_rf_","boschi_area_A",".rds")) 
 
-
+predict_rf <- raster::predict(object = brick_for_prediction,
+                              model = model_rf, type = 'raw')
+writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/tesi_davvero/modello","boschi_area_A_classification",".tiff"),overwrite=T )
 
 
 
