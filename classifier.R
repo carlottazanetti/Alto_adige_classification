@@ -29,6 +29,7 @@ library(stringr)
 library(doParallel)
 library(snow)
 library(parallel)
+library(tidyr)
 
 
 ###IF THE PACKAGES ARE NOT INSTALLED YET, PLEASE INSTALL THEM USING THE FOLLOWING CODE
@@ -110,8 +111,155 @@ poly_boschi_A <- sp::spTransform(poly_boschi_A,  sp::CRS("+proj=longlat +datum=W
 brick_for_prediction <-crop(brick_for_prediction, poly_boschi_A)
 
 
+ptsamp1<-subset(poly_boschi_A, id == "1") #seleziono solo i poigoni con id=1
+ptsamp1_1 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=1 
+ptsamp1_1$class <- over(ptsamp1_1, ptsamp1)$id #do il valore di id=1 ai punti random
+saveRDS(ptsamp1_1, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file="_ptsamp1_1_boschi_A.rds"))
+
+ptsamp2<-subset(poly_boschi_A, id == "2") #seleziono solo i poigoni con id=2
+ptsamp2_2 <- spsample(ptsamp2, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=2 
+ptsamp2_2$class <- over(ptsamp2_2, ptsamp2)$id #do il valore di id=2 ai punti random
+saveRDS(ptsamp2_2, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp2_2_boschi_A.rds"))
+
+ptsamp3<-subset(poly_boschi_A, id == "3") #seleziono solo i poigoni con id=3
+ptsamp3_3 <- spsample(ptsamp3, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=3 
+ptsamp3_3$class <- over(ptsamp3_3, ptsamp3)$id #do il valore di id=3 ai punti random
+saveRDS(ptsamp3_3, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp3_3_boschi_A.rds"))
+
+ptsamp4<-subset(poly_boschi_A, id == "4") #seleziono solo i poigoni con id=4
+ptsamp4_4 <- spsample(ptsamp4, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=4 
+ptsamp4_4$class <- over(ptsamp4_4, ptsamp4)$id #do il valore di id=4 ai punti random
+saveRDS(ptsamp4_4, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp4_4_boschi_A.rds"))
+
+ptsamp5<-subset(poly_boschi_A, id == "5") #seleziono solo i poigoni con id=5
+ptsamp5_5 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=5
+ptsamp5_5$class <- over(ptsamp5_5, ptsamp5)$id #do il valore di id=5 ai punti random
+saveRDS(ptsamp5_5, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file="_ptsamp5_5_boschi_A.rds"))
+
+ptsamp6<-subset(poly_boschi_A, id == "6") #seleziono solo i poigoni con id=6
+ptsamp6_6 <- spsample(ptsamp6, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=6
+ptsamp6_6$class <- over(ptsamp6_6, ptsamp6)$id #do il valore di id=6 ai punti random
+saveRDS(ptsamp6_6, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp6_6_boschi_A.rds"))
+
+ptsamp7<-subset(poly_boschi_A, id == "7") #seleziono solo i poigoni con id=7
+ptsamp7_7 <- spsample(ptsamp7, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=7
+ptsamp7_7$class <- over(ptsamp7_7, ptsamp7)$id #do il valore di id=7 ai punti random
+saveRDS(ptsamp7_7, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp7_7_boschi_A.rds"))
+
+ptsamp8<-subset(poly_boschi_A, id == "8") #seleziono solo i poigoni con id=8
+ptsamp8_8 <- spsample(ptsamp8, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=8 
+ptsamp8_8$class <- over(ptsamp8_8, ptsamp8)$id #do il valore di id=8 ai punti random
+saveRDS(ptsamp8_8, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp8_8_boschi_A.rds"))
+
+ptsamp9<-subset(poly_boschi_A, id == "9") #seleziono solo i poigoni con id=9
+ptsamp9_9 <- spsample(ptsamp9, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=9
+ptsamp9_9$class <- over(ptsamp9_9, ptsamp9)$id #do il valore di id=9 ai punti random
+saveRDS(ptsamp9_9, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp9_9_boschi_A.rds"))
+
+ptsamp10<-subset(poly_boschi_A, id == "10") #seleziono solo i poigoni con id=10
+ptsamp10_10 <- spsample(ptsamp10, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=10
+ptsamp10_10$class <- over(ptsamp10_10, ptsamp10)$id #do il valore di id=10 ai punti random
+saveRDS(ptsamp10_10, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp10_10_boschi_A.rds"))
 
 
+#in quest parte prendo le informazioni dei pixel dove il punto random è caduto e lo salvo in un dataframe. 
+dt1 <- brick_for_prediction %>% 
+  raster::extract(y = ptsamp1_1) %>% 
+  as.data.table %>% 
+  .[, id_cls := ptsamp1_1@data] # add the class names to each row
+
+dt2 <- brick_for_prediction %>% 
+  raster::extract(y = ptsamp2_2) %>% 
+  as.data.table %>% 
+  .[, id_cls := ptsamp2_2@data]
+
+dt3 <- brick_for_prediction %>% 
+  raster::extract(y = ptsamp3_3) %>% 
+  as.data.table %>% 
+  .[, id_cls := ptsamp3_3@data] # add the class names to each row
+
+dt4 <- brick_for_prediction %>% 
+  raster::extract(y = ptsamp4_4) %>% 
+  as.data.table %>% 
+  .[, id_cls := ptsamp4_4@data] # add the class names to each row
+
+dt5 <- brick_for_prediction %>% 
+  raster::extract(y = ptsamp5_5) %>% 
+  as.data.table %>% 
+  .[, id_cls := ptsamp5_5@data] # add the class names to each row
+
+dt6 <- brick_for_prediction %>% 
+  raster::extract(y = ptsamp6_6) %>% 
+  as.data.table %>% 
+  .[, id_cls := ptsamp6_6@data]
+
+dt7 <- brick_for_prediction %>% 
+  raster::extract(y = ptsamp7_7) %>% 
+  as.data.table %>% 
+  .[, id_cls := ptsamp7_7@data] # add the class names to each row
+
+dt8 <- brick_for_prediction %>% 
+  raster::extract(y = ptsamp8_8) %>% 
+  as.data.table %>% 
+  .[, id_cls := ptsamp8_8@data] # add the class names to each row
+
+dt9 <- brick_for_prediction %>% 
+  raster::extract(y = ptsamp9_9) %>% 
+  as.data.table %>% 
+  .[, id_cls := ptsamp9_9@data] # add the class names to each row
+
+dt10 <- brick_for_prediction %>% 
+  raster::extract(y = ptsamp10_10) %>% 
+  as.data.table %>% 
+  .[, id_cls := ptsamp10_10@data] # add the class names to each row
+
+
+#merge i due dataframe in un unio dataframe. 
+dt<-rbind(dt1, dt2, dt3, dt4, dt5, dt6, dt7, dt8, dt9, dt10)
+names(dt)[names(dt) == 'id_cls'] <- 'class'
+dt<-dt %>% drop_na()
+dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'))
+
+
+
+#inizio random forest
+set.seed(321)
+# A stratified random split of the data
+idx_train <- createDataPartition(dt$class,
+                                 p = 0.7, # percentage of data as training
+                                 list = FALSE)
+
+
+dt_train <- dt[idx_train]
+dt_test <- dt[-idx_train]
+
+
+# create cross-validation folds (splits the data into n random groups)
+n_folds <- 10
+set.seed(321)
+folds <- createFolds(1:nrow(dt_train), k = n_folds)
+# Set the seed at each resampling iteration. Useful when running CV in parallel.
+seeds <- vector(mode = "list", length = n_folds + 1) # +1 for the final model
+for(i in 1:n_folds) seeds[[i]] <- sample.int(1000, n_folds)
+seeds[n_folds + 1] <- sample.int(1000, 1) # seed for the final model
+
+
+ctrl <- trainControl(summaryFunction = multiClassSummary,
+                     method = "cv",
+                     number = n_folds,
+                     search = "grid",
+                     classProbs = TRUE, # not implemented for SVM; will just get a warning
+                     savePredictions = TRUE,
+                     index = folds,
+                     seeds = seeds)
+
+model_rf <- caret::train(class ~ . , method = "rf", data = dt_train, #neural network o vector machine
+                                                  importance = TRUE,
+                                                  tuneGrid = data.frame(mtry = c(2, 3, 4, 5, 8)),
+                                                  trControl = ctrl)
+
+#saving the model
+saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/tesi_davvero/modello","model_rf_","boschi_area_A",".rds")) 
 
 
 
