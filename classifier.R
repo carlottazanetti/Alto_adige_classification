@@ -105,7 +105,7 @@ poly_boschi_A@data$id <- as.integer(factor(poly_boschi_A@data$id))
 setDT(poly_boschi_A@data)
 
 #setting the coordinates from m to km so that they match the extent of the sentinel image
-poly_boschi_A <- sp::spTransform(poly_boschi_A,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
+#poly_boschi_A <- sp::spTransform(poly_boschi_A,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
 
 #only focusing on the area where the polygons are
 brick_for_prediction <-crop(brick_for_prediction, poly_boschi_A)
