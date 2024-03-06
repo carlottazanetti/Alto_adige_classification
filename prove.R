@@ -1,3 +1,73 @@
+##PACCHETTI DEL CODICE DI RANDOM FOREST
+# Packages for spatial data processing & visualization
+library(rgdal)
+library(gdalUtils)
+library(raster)
+library(sf)
+library(sp)
+library(RStoolbox)
+library(getSpatialData)
+library(rasterVis)
+library(mapview)
+
+library(RColorBrewer)
+library(plotly)
+library(grDevices)
+
+# Machine learning packages
+library(caret)
+library(randomForest)
+library(ranger)
+library(MLmetrics)
+library(nnet)
+library(NeuralNetTools)
+library(LiblineaR)
+
+# Packages for general data processing and parallel computation
+library(data.table)
+library(dplyr)
+library(stringr)
+library(doParallel)
+library(snow)
+library(parallel)
+library(tidyr)
+
+
+###IF THE PACKAGES ARE NOT INSTALLED YET, PLEASE INSTALL THEM USING THE FOLLOWING CODE
+# Packages for spatial data processing & visualization
+install.packages('rgdal')
+devtools::install_github("gearslaboratory/gdalUtils")
+install.packages('raster')
+install.packages('sf')
+install.packages('sp')
+install.packages('RStoolbox')
+devtools::install_github("16EAGLE/getSpatialData")
+install.packages('rasterVis')
+install.packages('mapview')
+
+install.packages('RColorBrewer')
+install.packages('plotly')
+install.packages('grDevices')
+
+# Machine learning packages
+install.packages('caret')
+install.packages('randomForest')
+install.packages('ranger')
+install.packages('MLmetrics')
+install.packages('nnet')
+install.packages('NeuralNetTools')
+install.packages('LiblineaR')
+
+# Packages for general data processing and parallel computation
+install.packages('data.table')
+install.packages('dplyr')
+install.packages('stringr')
+install.packages('doParallel')
+install.packages('snow')
+install.packages('parallel')
+####
+
+#PACCHETTI DEL CODICE CLASSIFICATORE
 library(raster)
 library(rgdal)
 library(sf)
