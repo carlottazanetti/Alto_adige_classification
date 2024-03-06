@@ -107,6 +107,12 @@ setDT(poly_area_A@data)
 #setting the coordinates from m to km so that they match the extent of the sentinel image
 poly_area_A <- sp::spTransform(poly_area_A,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
 
+crs(brick_for_prediction) <- "+proj=longlat +datum=WGS84 +units=km +no_defs"
+brick_for_prediction <- sp::spTransform(brick_for_prediction,  sp::CRS("+proj=longlat +datum=WGS84 +units=m +no_defs"))
+
+st_crs(brick_for_prediction) <- "+proj=longlat +datum=WGS84 +units=km +no_defs"
+st_crs(brick_for_prediction, "+proj=longlat +datum=WGS84 +units=km +no_defs")
+
 #only focusing on the area where the polygons are
 brick_for_prediction <-crop(brick_for_prediction, poly_area_A)
 
