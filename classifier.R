@@ -59,12 +59,12 @@ rst_for_prediction[b_10m] <- rst_lst[b_10m]
 brick_for_prediction <- brick(rst_for_prediction)
 
 #importing the shp file of area A
-poly_area_A <-shapefile('C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/area_A/poly_training_A.shp')
+poly_area_A <-shapefile('C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/area_A/poly_training_A31N.shp')
 poly_area_A@data$id <- as.integer(factor(poly_area_A@data$id))
 setDT(poly_area_A@data)
 
 #setting the coordinates from m to km so that they match the extent of the sentinel image
-#poly_area_A <- sp::spTransform(poly_area_A,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
+poly_area_A <- sp::spTransform(poly_area_A,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
 
 #giving units to brick of prediction
 #crs(brick_for_prediction) <- "+proj=longlat +datum=WGS84 +units=km +no_defs"
