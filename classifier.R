@@ -97,7 +97,7 @@ ptsamp4_4$class <- over(ptsamp4_4, ptsamp4)$id #do il valore di id=4 ai punti ra
 saveRDS(ptsamp4_4, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp4_A.rds"))
 
 ptsamp5<-subset(poly_area_A, id == "5") #seleziono solo i poigoni con id=5
-ptsamp5_5 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=5
+ptsamp5_5 <- spsample(ptsamp5, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=5
 ptsamp5_5$class <- over(ptsamp5_5, ptsamp5)$id #do il valore di id=5 ai punti random
 saveRDS(ptsamp5_5, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file="_ptsamp5_A.rds"))
 
@@ -133,7 +133,7 @@ dt5 <- brick_for_prediction %>%
 dt<-rbind(dt1, dt2, dt3, dt4, dt5)
 names(dt)[names(dt) == 'id_cls'] <- 'class'
 dt<-dt %>% drop_na()
-dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd'))
+dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd', 'e'))
 
 
 
