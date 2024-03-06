@@ -100,66 +100,41 @@ rst_for_prediction[b_10m] <- rst_lst[b_10m]
 brick_for_prediction <- brick(rst_for_prediction)
 
 #importing the shp file of the woods in area A
-poly_boschi_A<-shapefile('C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/boschi_A_31N.shp')
-poly_boschi_A@data$id <- as.integer(factor(poly_boschi_A@data$id))
-setDT(poly_boschi_A@data)
+poly_area_A<-shapefile('C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/area_A/poligoni_training_A.shp')
+poly_area_A@data$id <- as.integer(factor(poly_area_A@data$id))
+setDT(poly_area_A@data)
 
 #setting the coordinates from m to km so that they match the extent of the sentinel image
-#poly_boschi_A <- sp::spTransform(poly_boschi_A,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
+poly_area_A <- sp::spTransform(poly_area_A,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
 
 #only focusing on the area where the polygons are
-brick_for_prediction <-crop(brick_for_prediction, poly_boschi_A)
+brick_for_prediction <-crop(brick_for_prediction, poly_area_A)
 
 
-ptsamp1<-subset(poly_boschi_A, id == "1") #seleziono solo i poigoni con id=1
+ptsamp1<-subset(poly_area_A, id == "1") #seleziono solo i poigoni con id=1
 ptsamp1_1 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=1 
 ptsamp1_1$class <- over(ptsamp1_1, ptsamp1)$id #do il valore di id=1 ai punti random
-saveRDS(ptsamp1_1, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file="_ptsamp1_1_boschi_A.rds"))
+saveRDS(ptsamp1_1, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file="_ptsamp1_A.rds"))
 
-ptsamp2<-subset(poly_boschi_A, id == "2") #seleziono solo i poigoni con id=2
+ptsamp2<-subset(poly_area_A, id == "2") #seleziono solo i poigoni con id=2
 ptsamp2_2 <- spsample(ptsamp2, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=2 
 ptsamp2_2$class <- over(ptsamp2_2, ptsamp2)$id #do il valore di id=2 ai punti random
-saveRDS(ptsamp2_2, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp2_2_boschi_A.rds"))
+saveRDS(ptsamp2_2, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp2_A.rds"))
 
-ptsamp3<-subset(poly_boschi_A, id == "3") #seleziono solo i poigoni con id=3
+ptsamp3<-subset(poly_area_A, id == "3") #seleziono solo i poigoni con id=3
 ptsamp3_3 <- spsample(ptsamp3, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=3 
 ptsamp3_3$class <- over(ptsamp3_3, ptsamp3)$id #do il valore di id=3 ai punti random
-saveRDS(ptsamp3_3, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp3_3_boschi_A.rds"))
+saveRDS(ptsamp3_3, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp3_A.rds"))
 
-ptsamp4<-subset(poly_boschi_A, id == "4") #seleziono solo i poigoni con id=4
+ptsamp4<-subset(poly_area_A, id == "4") #seleziono solo i poigoni con id=4
 ptsamp4_4 <- spsample(ptsamp4, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=4 
 ptsamp4_4$class <- over(ptsamp4_4, ptsamp4)$id #do il valore di id=4 ai punti random
-saveRDS(ptsamp4_4, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp4_4_boschi_A.rds"))
+saveRDS(ptsamp4_4, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp4_A.rds"))
 
-ptsamp5<-subset(poly_boschi_A, id == "5") #seleziono solo i poigoni con id=5
+ptsamp5<-subset(poly_area_A, id == "5") #seleziono solo i poigoni con id=5
 ptsamp5_5 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=5
 ptsamp5_5$class <- over(ptsamp5_5, ptsamp5)$id #do il valore di id=5 ai punti random
-saveRDS(ptsamp5_5, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file="_ptsamp5_5_boschi_A.rds"))
-
-ptsamp6<-subset(poly_boschi_A, id == "6") #seleziono solo i poigoni con id=6
-ptsamp6_6 <- spsample(ptsamp6, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=6
-ptsamp6_6$class <- over(ptsamp6_6, ptsamp6)$id #do il valore di id=6 ai punti random
-saveRDS(ptsamp6_6, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp6_6_boschi_A.rds"))
-
-ptsamp7<-subset(poly_boschi_A, id == "7") #seleziono solo i poigoni con id=7
-ptsamp7_7 <- spsample(ptsamp7, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=7
-ptsamp7_7$class <- over(ptsamp7_7, ptsamp7)$id #do il valore di id=7 ai punti random
-saveRDS(ptsamp7_7, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp7_7_boschi_A.rds"))
-
-ptsamp8<-subset(poly_boschi_A, id == "8") #seleziono solo i poigoni con id=8
-ptsamp8_8 <- spsample(ptsamp8, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=8 
-ptsamp8_8$class <- over(ptsamp8_8, ptsamp8)$id #do il valore di id=8 ai punti random
-saveRDS(ptsamp8_8, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp8_8_boschi_A.rds"))
-
-ptsamp9<-subset(poly_boschi_A, id == "9") #seleziono solo i poigoni con id=9
-ptsamp9_9 <- spsample(ptsamp9, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=9
-ptsamp9_9$class <- over(ptsamp9_9, ptsamp9)$id #do il valore di id=9 ai punti random
-saveRDS(ptsamp9_9, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp9_9_boschi_A.rds"))
-
-ptsamp10<-subset(poly_boschi_A, id == "10") #seleziono solo i poigoni con id=10
-ptsamp10_10 <- spsample(ptsamp10, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=10
-ptsamp10_10$class <- over(ptsamp10_10, ptsamp10)$id #do il valore di id=10 ai punti random
-saveRDS(ptsamp10_10, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file= "_ptsamp10_10_boschi_A.rds"))
+saveRDS(ptsamp5_5, file=paste0 ("C:/Users/carlo/Desktop/tesi/tesi_davvero/aree_di_studio/punti_random/area_A", file="_ptsamp5_A.rds"))
 
 
 #in quest parte prendo le informazioni dei pixel dove il punto random è caduto e lo salvo in un dataframe. 
@@ -188,37 +163,12 @@ dt5 <- brick_for_prediction %>%
   as.data.table %>% 
   .[, id_cls := ptsamp5_5@data] # add the class names to each row
 
-dt6 <- brick_for_prediction %>% 
-  raster::extract(y = ptsamp6_6) %>% 
-  as.data.table %>% 
-  .[, id_cls := ptsamp6_6@data]
-
-dt7 <- brick_for_prediction %>% 
-  raster::extract(y = ptsamp7_7) %>% 
-  as.data.table %>% 
-  .[, id_cls := ptsamp7_7@data] # add the class names to each row
-
-dt8 <- brick_for_prediction %>% 
-  raster::extract(y = ptsamp8_8) %>% 
-  as.data.table %>% 
-  .[, id_cls := ptsamp8_8@data] # add the class names to each row
-
-dt9 <- brick_for_prediction %>% 
-  raster::extract(y = ptsamp9_9) %>% 
-  as.data.table %>% 
-  .[, id_cls := ptsamp9_9@data] # add the class names to each row
-
-dt10 <- brick_for_prediction %>% 
-  raster::extract(y = ptsamp10_10) %>% 
-  as.data.table %>% 
-  .[, id_cls := ptsamp10_10@data] # add the class names to each row
-
 
 #merge i due dataframe in un unio dataframe. 
-dt<-rbind(dt1, dt2, dt3, dt4, dt5, dt6, dt7, dt8, dt9, dt10)
+dt<-rbind(dt1, dt2, dt3, dt4, dt5)
 names(dt)[names(dt) == 'id_cls'] <- 'class'
 dt<-dt %>% drop_na()
-dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'))
+dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd'))
 
 
 
@@ -259,11 +209,11 @@ model_rf <- caret::train(class ~ . , method = "rf", data = dt_train, #neural net
                                                   trControl = ctrl)
 
 #saving the model
-saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/tesi_davvero/modello","model_rf_","boschi_area_A",".rds")) 
+saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/tesi_davvero/modello/","model_rf_","area_A",".rds")) 
 
 predict_rf <- raster::predict(object = brick_for_prediction,
                               model = model_rf, type = 'raw')
-writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/tesi_davvero/modello","boschi_area_A_classification",".tiff"),overwrite=T )
+writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/tesi_davvero/modello/","area_A_classification",".tiff"),overwrite=T )
 
 
 
