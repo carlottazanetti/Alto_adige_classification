@@ -180,12 +180,10 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 ####WORKING ON AREA B
 #importing the shp file of area B
-poly_area_B <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/poly_training_B31N.shp')
+poly_area_B <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/poly_training_B32N.shp')
 poly_area_B@data$id <- as.integer(factor(poly_area_B@data$id))
 setDT(poly_area_B@data)
 
-#setting the coordinates from m to km so that they match the extent of the sentinel image
-poly_area_B <- sp::spTransform(poly_area_B,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
 
 #rewriting brick_for_prediction so that it's not cropped on the area A
 brick_for_prediction <- brick(rst_for_prediction)
@@ -302,12 +300,9 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 ###àWORKING ON AREA C
 #importing the shp file of area C
-poly_area_C <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/poly_training_C31N.shp')
+poly_area_C <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/poly_training_C32N.shp')
 poly_area_C@data$id <- as.integer(factor(poly_area_C@data$id))
 setDT(poly_area_C@data)
-
-#setting the coordinates from m to km so that they match the extent of the sentinel image
-poly_area_C <- sp::spTransform(poly_area_C,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
 
 #rewriting brick_for_prediction so that it's not cropped on the area B
 brick_for_prediction <- brick(rst_for_prediction)
@@ -423,12 +418,9 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 ####WORKING ON AREA D
 #importing the shp file of area D
-poly_area_D <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/poly_training_D31N.shp')
+poly_area_D <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/poly_training_D32N.shp')
 poly_area_D@data$id <- as.integer(factor(poly_area_D@data$id))
 setDT(poly_area_D@data)
-
-#setting the coordinates from m to km so that they match the extent of the sentinel image
-poly_area_D <- sp::spTransform(poly_area_D,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
 
 #rewriting brick_for_prediction so that it's not cropped on the area C
 brick_for_prediction <- brick(rst_for_prediction)
