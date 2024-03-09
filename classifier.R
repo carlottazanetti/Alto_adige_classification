@@ -63,18 +63,9 @@ brick_for_prediction <- brick(rst_for_prediction)
 
 #####WORKING ON AREA A
 #importing the shp file of area A
-poly_area_A <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/poly_training_A31N.shp')
+poly_area_A <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/poly_training_A32N.shp')
 poly_area_A@data$id <- as.integer(factor(poly_area_A@data$id))
 setDT(poly_area_A@data)
-
-#setting the coordinates from m to km so that they match the extent of the sentinel image
-poly_area_A <- sp::spTransform(poly_area_A,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
-
-#giving units to brick of prediction
-#crs(brick_for_prediction) <- "+proj=longlat +datum=WGS84 +units=km +no_defs"
-#st_crs(brick_for_prediction) <- "+proj=longlat +datum=WGS84 +units=km +no_defs"
-#brick_for_prediction <- sp::spTransform(brick_for_prediction,  sp::CRS("+proj=longlat +datum=WGS84 +units=m +no_defs"))
-
 
 #only focusing on the area where the polygons are
 brick_for_prediction <-crop(brick_for_prediction, poly_area_A)
@@ -1044,9 +1035,10 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 ###############WORKING WITH ENMAP DATASET
 rst_lst <- stack('C:/Users/carlo/Desktop/tesi/alto_adige/enmap/dataset/ENMAP02/ENMAP01-____L2A-DT0000041009_20230909T102954Z_002_V010303_20230910T054452Z-SPECTRAL_IMAGE.tif')
-rst_lst <- rast('C:/Users/carlo/Desktop/tesi/alto_adige/enmap/dataset/ENMAP02/ENMAP01-____L2A-DT0000041009_20230909T102954Z_002_V010303_20230910T054452Z-SPECTRAL_IMAGE.tif')
 
-#setMinMax(rst_lst)
+#library(terra)
+#rst_lst <- rast('C:/Users/carlo/Desktop/tesi/alto_adige/enmap/dataset/ENMAP02/ENMAP01-____L2A-DT0000041009_20230909T102954Z_002_V010303_20230910T054452Z-SPECTRAL_IMAGE.tif')
+setMinMax(rst_lst)
 
 #Visualize the image in Natural Color (R = Red, G = Green, B = Blue).
 suppressWarnings({viewRGB(brick(rst_lst[1:44]), r = 44, g = 21, b = 5)})
