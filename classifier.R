@@ -28,6 +28,9 @@ library(maptools)
 
 
 ###############WORKING WITH SENTINEL2 DATASET
+#Projected resolution: 92 m/px?
+
+
 #Path to tiff files
 data_path='C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/unzipped'
 #Read the raster bands: B2, B3, B4, B5, B6, B7, B8, B8A, B11 and B12:
