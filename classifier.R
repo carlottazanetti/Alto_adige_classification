@@ -37,8 +37,8 @@ library(maptools)
 #Path to tiff files
 data_path='C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/unzipped'
 #Read the raster bands: B2, B3, B4, B5, B6, B7, B8, B8A, B11 and B12:
-sentinel <- c(list.files(paste0(data_path), pattern = ".*B.*[2345678].*tiff", full.names = TRUE),
-              'C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/unzipped/B11_(Raw).tiff')
+sentinel <- c(list.files(paste0(data_path), pattern = ".*B.*[2345678]", full.names = TRUE),
+              'C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/unzipped/B11')
 rst_lst <- lapply(sentinel, FUN = raster)
 
 #Reorganizing the bands in the right order
@@ -1602,7 +1602,7 @@ dt5 <- brick_for_prediction %>%
 #merge i due dataframe in un unio dataframe. 
 dt<-rbind(dt1, dt2, dt3, dt4, dt5)
 names(dt)[names(dt) == 'id_cls'] <- 'class'
-dt<-dt %>% drop_na()
+#dt<-dt %>% drop_na()
 dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd', 'e'))
 
 
@@ -1640,15 +1640,15 @@ ctrl <- trainControl(summaryFunction = multiClassSummary,
 
 model_rf <- caret::train(class ~ . , method = "rf", data = dt_train, #neural network o vector machine
                                                   importance = TRUE,
-                                                  tuneGrid = data.frame(mtry = c(2, 3, 4, 5, 8)),
+                         
                                                   trControl = ctrl)
 
 #saving the model
-saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/sentinel2/modello/","model_rf_","area_A",".rds")) 
+saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/enmap/modello/","model_rf_","area_A",".rds")) 
 
 predict_rf <- raster::predict(object = brick_for_prediction,
                               model = model_rf, type = 'raw')
-writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/sentinel2/modello/","sentinel_area_A_classification",".tiff"),overwrite=T )
+writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/enmap/modello/","enmap_area_A_classification",".tiff"),overwrite=T )
 
 
 
@@ -1660,7 +1660,7 @@ poly_area_B@data$id <- as.integer(factor(poly_area_B@data$id))
 setDT(poly_area_B@data)
 
 #setting the coordinates from m to km so that they match the extent of the sentinel image
-poly_area_B <- sp::spTransform(poly_area_B,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
+#poly_area_B <- sp::spTransform(poly_area_B,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
 
 #rewriting brick_for_prediction so that it's not cropped on the area A
 brick_for_prediction <- brick(rst_for_prediction)
@@ -1671,27 +1671,27 @@ brick_for_prediction <-crop(brick_for_prediction, poly_area_B)
 ptsamp1<-subset(poly_area_B, id == "1") #seleziono solo i poigoni con id=1
 ptsamp1_1 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=1 
 ptsamp1_1$class <- over(ptsamp1_1, ptsamp1)$id #do il valore di id=1 ai punti random
-saveRDS(ptsamp1_1, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/sentinel2/punti_random/", file="_ptsamp1_B.rds"))
+saveRDS(ptsamp1_1, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/enmap/punti_random/", file="_ptsamp1_B.rds"))
 
 ptsamp2<-subset(poly_area_B, id == "2") #seleziono solo i poigoni con id=2
 ptsamp2_2 <- spsample(ptsamp2, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=2 
 ptsamp2_2$class <- over(ptsamp2_2, ptsamp2)$id #do il valore di id=2 ai punti random
-saveRDS(ptsamp2_2, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/sentinel2/punti_random/", file= "_ptsamp2_B.rds"))
+saveRDS(ptsamp2_2, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/enmap/punti_random/", file= "_ptsamp2_B.rds"))
 
 ptsamp3<-subset(poly_area_B, id == "3") #seleziono solo i poigoni con id=3
 ptsamp3_3 <- spsample(ptsamp3, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=3 
 ptsamp3_3$class <- over(ptsamp3_3, ptsamp3)$id #do il valore di id=3 ai punti random
-saveRDS(ptsamp3_3, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/sentinel2/punti_random/", file= "_ptsamp3_B.rds"))
+saveRDS(ptsamp3_3, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/enmap/punti_random/", file= "_ptsamp3_B.rds"))
 
 ptsamp4<-subset(poly_area_B, id == "4") #seleziono solo i poigoni con id=4
 ptsamp4_4 <- spsample(ptsamp4, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=4 
 ptsamp4_4$class <- over(ptsamp4_4, ptsamp4)$id #do il valore di id=4 ai punti random
-saveRDS(ptsamp4_4, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/sentinel2/punti_random/", file= "_ptsamp4_B.rds"))
+saveRDS(ptsamp4_4, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/enmap/punti_random/", file= "_ptsamp4_B.rds"))
 
 ptsamp5<-subset(poly_area_B, id == "5") #seleziono solo i poigoni con id=5
 ptsamp5_5 <- spsample(ptsamp5, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=5
 ptsamp5_5$class <- over(ptsamp5_5, ptsamp5)$id #do il valore di id=5 ai punti random
-saveRDS(ptsamp5_5, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/sentinel2/punti_random/", file="_ptsamp5_B.rds"))
+saveRDS(ptsamp5_5, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/enmap/punti_random/", file="_ptsamp5_B.rds"))
 
 
 #in quest parte prendo le informazioni dei pixel dove il punto random è caduto e lo salvo in un dataframe. 
@@ -1766,11 +1766,11 @@ model_rf <- caret::train(class ~ . , method = "rf", data = dt_train, #neural net
                                                   trControl = ctrl)
 
 #saving the model
-saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/sentinel2/modello/","model_rf_","area_B",".rds")) 
+saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/enmap/modello/","model_rf_","area_B",".rds")) 
 
 predict_rf <- raster::predict(object = brick_for_prediction,
                               model = model_rf, type = 'raw')
-writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/sentinel2/modello/","sentinel_area_B_classification",".tiff"),overwrite=T )
+writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/enmap/modello/","enmap_area_B_classification",".tiff"),overwrite=T )
 
 
 
@@ -1782,7 +1782,7 @@ poly_area_C@data$id <- as.integer(factor(poly_area_C@data$id))
 setDT(poly_area_C@data)
 
 #setting the coordinates from m to km so that they match the extent of the sentinel image
-poly_area_C <- sp::spTransform(poly_area_C,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
+#poly_area_C <- sp::spTransform(poly_area_C,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
 
 #rewriting brick_for_prediction so that it's not cropped on the area B
 brick_for_prediction <- brick(rst_for_prediction)
@@ -1793,27 +1793,27 @@ brick_for_prediction <-crop(brick_for_prediction, poly_area_C)
 ptsamp1<-subset(poly_area_C, id == "1") #seleziono solo i poigoni con id=1
 ptsamp1_1 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=1 
 ptsamp1_1$class <- over(ptsamp1_1, ptsamp1)$id #do il valore di id=1 ai punti random
-saveRDS(ptsamp1_1, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/sentinel2/punti_random/", file="_ptsamp1_C.rds"))
+saveRDS(ptsamp1_1, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/enmap/punti_random/", file="_ptsamp1_C.rds"))
 
 ptsamp2<-subset(poly_area_C, id == "2") #seleziono solo i poigoni con id=2
 ptsamp2_2 <- spsample(ptsamp2, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=2 
 ptsamp2_2$class <- over(ptsamp2_2, ptsamp2)$id #do il valore di id=2 ai punti random
-saveRDS(ptsamp2_2, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/sentinel2/punti_random/", file= "_ptsamp2_C.rds"))
+saveRDS(ptsamp2_2, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/enmap/punti_random/", file= "_ptsamp2_C.rds"))
 
 ptsamp3<-subset(poly_area_C, id == "3") #seleziono solo i poigoni con id=3
 ptsamp3_3 <- spsample(ptsamp3, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=3 
 ptsamp3_3$class <- over(ptsamp3_3, ptsamp3)$id #do il valore di id=3 ai punti random
-saveRDS(ptsamp3_3, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/sentinel2/punti_random/", file= "_ptsamp3_C.rds"))
+saveRDS(ptsamp3_3, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/enmap/punti_random/", file= "_ptsamp3_C.rds"))
 
 ptsamp4<-subset(poly_area_C, id == "4") #seleziono solo i poigoni con id=4
 ptsamp4_4 <- spsample(ptsamp4, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=4 
 ptsamp4_4$class <- over(ptsamp4_4, ptsamp4)$id #do il valore di id=4 ai punti random
-saveRDS(ptsamp4_4, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/sentinel2/punti_random/", file= "_ptsamp4_C.rds"))
+saveRDS(ptsamp4_4, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/enmap/punti_random/", file= "_ptsamp4_C.rds"))
 
 ptsamp5<-subset(poly_area_C, id == "5") #seleziono solo i poigoni con id=5
 ptsamp5_5 <- spsample(ptsamp5, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=5
 ptsamp5_5$class <- over(ptsamp5_5, ptsamp5)$id #do il valore di id=5 ai punti random
-saveRDS(ptsamp5_5, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/sentinel2/punti_random/", file="_ptsamp5_C.rds"))
+saveRDS(ptsamp5_5, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/enmap/punti_random/", file="_ptsamp5_C.rds"))
 
 
 #in quest parte prendo le informazioni dei pixel dove il punto random è caduto e lo salvo in un dataframe. 
@@ -1888,11 +1888,11 @@ model_rf <- caret::train(class ~ . , method = "rf", data = dt_train, #neural net
                                                   trControl = ctrl)
 
 #saving the model
-saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/sentinel2/modello/","model_rf_","area_C",".rds")) 
+saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/enmap/modello/","model_rf_","area_C",".rds")) 
 
 predict_rf <- raster::predict(object = brick_for_prediction,
                               model = model_rf, type = 'raw')
-writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/sentinel2/modello/","sentinel_area_C_classification",".tiff"),overwrite=T )
+writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/enmap/modello/","enmap_area_C_classification",".tiff"),overwrite=T )
 
 
 
@@ -1903,7 +1903,7 @@ poly_area_D@data$id <- as.integer(factor(poly_area_D@data$id))
 setDT(poly_area_D@data)
 
 #setting the coordinates from m to km so that they match the extent of the sentinel image
-poly_area_D <- sp::spTransform(poly_area_D,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
+#poly_area_D <- sp::spTransform(poly_area_D,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
 
 #rewriting brick_for_prediction so that it's not cropped on the area C
 brick_for_prediction <- brick(rst_for_prediction)
@@ -1914,27 +1914,27 @@ brick_for_prediction <-crop(brick_for_prediction, poly_area_D)
 ptsamp1<-subset(poly_area_D, id == "1") #seleziono solo i poigoni con id=1
 ptsamp1_1 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=1 
 ptsamp1_1$class <- over(ptsamp1_1, ptsamp1)$id #do il valore di id=1 ai punti random
-saveRDS(ptsamp1_1, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/sentinel2/punti_random/", file="_ptsamp1_D.rds"))
+saveRDS(ptsamp1_1, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/enmap/punti_random/", file="_ptsamp1_D.rds"))
 
 ptsamp2<-subset(poly_area_D, id == "2") #seleziono solo i poigoni con id=2
 ptsamp2_2 <- spsample(ptsamp2, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=2 
 ptsamp2_2$class <- over(ptsamp2_2, ptsamp2)$id #do il valore di id=2 ai punti random
-saveRDS(ptsamp2_2, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/sentinel2/punti_random/", file= "_ptsamp2_D.rds"))
+saveRDS(ptsamp2_2, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/enmap/punti_random/", file= "_ptsamp2_D.rds"))
 
 ptsamp3<-subset(poly_area_D, id == "3") #seleziono solo i poigoni con id=3
 ptsamp3_3 <- spsample(ptsamp3, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=3 
 ptsamp3_3$class <- over(ptsamp3_3, ptsamp3)$id #do il valore di id=3 ai punti random
-saveRDS(ptsamp3_3, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/sentinel2/punti_random/", file= "_ptsamp3_D.rds"))
+saveRDS(ptsamp3_3, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/enmap/punti_random/", file= "_ptsamp3_D.rds"))
 
 ptsamp4<-subset(poly_area_D, id == "4") #seleziono solo i poigoni con id=4
 ptsamp4_4 <- spsample(ptsamp4, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=4 
 ptsamp4_4$class <- over(ptsamp4_4, ptsamp4)$id #do il valore di id=4 ai punti random
-saveRDS(ptsamp4_4, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/sentinel2/punti_random/", file= "_ptsamp4_D.rds"))
+saveRDS(ptsamp4_4, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/enmap/punti_random/", file= "_ptsamp4_D.rds"))
 
 ptsamp5<-subset(poly_area_D, id == "5") #seleziono solo i poigoni con id=5
 ptsamp5_5 <- spsample(ptsamp5, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=5
 ptsamp5_5$class <- over(ptsamp5_5, ptsamp5)$id #do il valore di id=5 ai punti random
-saveRDS(ptsamp5_5, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/sentinel2/punti_random/", file="_ptsamp5_D.rds"))
+saveRDS(ptsamp5_5, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/enmap/punti_random/", file="_ptsamp5_D.rds"))
 
 
 #in quest parte prendo le informazioni dei pixel dove il punto random è caduto e lo salvo in un dataframe. 
@@ -2009,11 +2009,11 @@ model_rf <- caret::train(class ~ . , method = "rf", data = dt_train, #neural net
                                                   trControl = ctrl)
 
 #saving the model
-saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/sentinel2/modello/","model_rf_","area_D",".rds")) 
+saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/enmap/modello/","model_rf_","area_D",".rds")) 
 
 predict_rf <- raster::predict(object = brick_for_prediction,
                               model = model_rf, type = 'raw')
-writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/sentinel2/modello/","sentinel_area_D_classification",".tiff"),overwrite=T )
+writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/enmap/modello/","enmap_area_D_classification",".tiff"),overwrite=T )
 
 
 
