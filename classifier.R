@@ -78,7 +78,7 @@ brick_for_prediction <-crop(brick_for_prediction, poly_area_A)
 
 
 ptsamp1<-subset(poly_area_A, id == "1") #seleziono solo i poigoni con id=1
-ptsamp1_1 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=1 
+ptsamp1_1 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=1, usando regular sampling
 ptsamp1_1$class <- over(ptsamp1_1, ptsamp1)$id #do il valore di id=1 ai punti random
 saveRDS(ptsamp1_1, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/sentinel2/10m/punti_random/", file="_ptsamp1_A.rds"))
 
@@ -104,9 +104,9 @@ saveRDS(ptsamp5_5, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_
 
 
 #in quest parte prendo le informazioni dei pixel dove il punto random è caduto e lo salvo in un dataframe. 
-dt1 <- brick_for_prediction %>% 
+dt1 <- brick_for_prediction %>%   #%>% takes the output of one function and passes it into another function as an argument, read it as 'and then'
   raster::extract(y = ptsamp1_1) %>% 
-  as.data.table %>% 
+  as.data.table %>%   #Functions to check if an object is data.table, or coerce it if possible
   .[, id_cls := ptsamp1_1@data] # add the class names to each row
 
 dt2 <- brick_for_prediction %>% 
@@ -134,16 +134,16 @@ dt5 <- brick_for_prediction %>%
 dt<-rbind(dt1, dt2, dt3, dt4, dt5)
 names(dt)[names(dt) == 'id_cls'] <- 'class'
 dt<-dt %>% drop_na()
-dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd', 'e'))
+dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd', 'e')) #The function factor is used to encode a vector as a factor 
 
 
 
 #inizio random forest
-set.seed(321)
+set.seed(321) #Since it's a pseudo random number generator, you need to choose the seed
 # A stratified random split of the data
-idx_train <- createDataPartition(dt$class,
+idx_train <- createDataPartition(dt$class,    #A series of test/training partitions are created
                                  p = 0.7, # percentage of data as training
-                                 list = FALSE)
+                                 list = FALSE) #if it's false then you don't want the result to be a list
 
 
 dt_train <- dt[idx_train]
@@ -155,20 +155,23 @@ n_folds <- 10
 set.seed(321)
 folds <- createFolds(1:nrow(dt_train), k = n_folds)
 # Set the seed at each resampling iteration. Useful when running CV in parallel.
-seeds <- vector(mode = "list", length = n_folds + 1) # +1 for the final model
-for(i in 1:n_folds) seeds[[i]] <- sample.int(1000, n_folds)
+seeds <- vector(mode = "list", length = n_folds + 1) # +1 for the final model. It's an empty vector?
+for(i in 1:n_folds) seeds[[i]] <- sample.int(1000, n_folds) #It gives you a random sample of n_folds (10) numbers from 1 to 1000
 seeds[n_folds + 1] <- sample.int(1000, 1) # seed for the final model
 
 
-ctrl <- trainControl(summaryFunction = multiClassSummary,
+ctrl <- trainControl(summaryFunction = multiClassSummary,  #Control the computational nuances of the train function
                      method = "cv",
-                     number = n_folds,
-                     search = "grid",
-                     classProbs = TRUE, # not implemented for SVM; will just get a warning
+                     number = n_folds, #number of folds
+                     search = "grid", #describing how the tuning parameter grid is determined
+                     classProbs = TRUE, #should class probabilities be computed for classification models (along with predicted values) in each resample?
+                                       #not implemented for SVM; will just get a warning. 
                      savePredictions = TRUE,
-                     index = folds,
+                     index = folds, #a list with elements for each resampling iteration. 
+                                    #Each list element is a vector of integers corresponding to the rows used for training at that iteration.
                      seeds = seeds)
 
+#This function sets up a grid of tuning parameters for a number of classification and regression routines
 model_rf <- caret::train(class ~ . , method = "rf", data = dt_train, #neural network o vector machine
                                                   importance = TRUE,
                                                   tuneGrid = data.frame(mtry = c(2, 3, 4, 5, 8)),
@@ -177,6 +180,7 @@ model_rf <- caret::train(class ~ . , method = "rf", data = dt_train, #neural net
 #saving the model
 saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/sentinel2/10m/modello/","model_rf_10m","area_A",".rds")) 
 
+#predict values based on the input data
 predict_rf <- raster::predict(object = brick_for_prediction,
                               model = model_rf, type = 'raw')
 writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/sentinel2/modello/","sentinel_10m_area_A_classification",".tiff"),overwrite=T )
