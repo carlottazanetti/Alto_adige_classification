@@ -191,28 +191,6 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####EVALUATION OF THE MODEL 
-# create cross-validation folds (splits the data into n random groups)
-n_folds <- 10
-set.seed(99)
-folds <- createFolds(1:nrow(dt_train), k = n_folds)
-# Set the seed at each resampling iteration. Useful when running CV in parallel.
-seeds <- vector(mode = "list", length = n_folds + 1) # +1 for the final model. It's an empty vector?
-for(i in 1:n_folds) seeds[[i]] <- sample.int(1000, n_folds) #It gives you a random sample of n_folds (10) numbers from 1 to 1000
-seeds[n_folds + 1] <- sample.int(1000, 1) # seed for the final model
-
-
-ctrl <- trainControl(summaryFunction = multiClassSummary,  #Control the computational nuances of the train function
-                     method = "cv",
-                     number = n_folds, #number of folds
-                     search = "grid", #describing how the tuning parameter grid is determined
-                     classProbs = TRUE, #should class probabilities be computed for classification models (along with predicted values) in each resample?
-                                       #not implemented for SVM; will just get a warning. 
-                     savePredictions = TRUE,
-                     index = folds, #a list with elements for each resampling iteration. 
-                                    #Each list element is a vector of integers corresponding to the rows used for training at that iteration.
-                     seeds = seeds)
-
-
 
 library(dismo)
 set.seed(99)
@@ -224,7 +202,7 @@ j <- kfold(dt_train, k = 5, by=dt_train$class)
 x <- list()
   for (k in 1:5) {
     train <- dt_train[j!= k, ]
-    test <- dt_train[j == k, ]
+    test <- dt_train[j == k, ] #takes the kth row
     cart <- caret::train(class ~ . , method = "rf", data = train, #neural network o vector machine
                                                   importance = TRUE,
                                                   tuneGrid = data.frame(mtry = c(2, 3, 4, 5, 8)),
@@ -232,7 +210,7 @@ x <- list()
     pclass <- raster::predict(object = test,
                               model = cart, type = 'raw')
     # create a data.frame using the reference and prediction
-    x[[k]] <- cbind(test$class, as.integer(pclass))
+    x[[k]] <- cbind(dt_test$class, as.integer(pclass))
   }
 
 
@@ -248,6 +226,19 @@ x <- list()
     # create a data.frame using the reference and prediction
     x[[1]] <- cbind(test$class, as.integer(pclass))
 
+
+
+
+x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
+
+y <- rbind(x)
+y <- data.frame(y)
+colnames(y) <- c('observed', 'predicted')
+conmat <- table(y)
+# change the name of the classes
+colnames(conmat) <- classdf$classnames
+rownames(conmat) <- classdf$classnames
+conmat
 
 ####WORKING ON AREA B
 #importing the shp file of area B
