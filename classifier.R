@@ -215,20 +215,6 @@ x <- list()
 
 
 
-    train <- dt_train[j!= 1, ]
-    test <- dt_train[j == 1, ]
-    cart <- caret::train(class ~ . , method = "rf", data = train, #neural network o vector machine
-                                                  importance = TRUE,
-                                                  tuneGrid = data.frame(mtry = c(2, 3, 4, 5, 8)),
-                                                  trControl = ctrl)
-    pclass <- raster::predict(object = test,
-                              model = cart, type = 'raw')
-    # create a data.frame using the reference and prediction
-    x[[1]] <- cbind(test$class, as.integer(pclass))
-
-
-
-
 x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
 
 y <- rbind(x)
@@ -236,9 +222,30 @@ y <- data.frame(y)
 colnames(y) <- c('observed', 'predicted')
 conmat <- table(y)
 # change the name of the classes
-colnames(conmat) <- classdf$classnames
-rownames(conmat) <- classdf$classnames
-conmat
+#colnames(conmat) <- classdf$classnames
+#rownames(conmat) <- classdf$classnames
+
+n <- sum(conmat)
+# number of correctly classified cases per class
+diag <- diag(conmat)
+# Overall Accuracy
+OA <- sum(diag) / n
+OA
+
+rowsums <- apply(conmat, 1, sum)
+p <- rowsums / n
+# predicted cases per class
+colsums <- apply(conmat, 2, sum)
+q <- colsums / n
+expAccuracy <- sum(p*q)
+kappa <- (OA - expAccuracy) / (1 - expAccuracy)
+kappa
+
+PA <- diag / colsums
+# User accuracy
+UA <- diag / rowsums
+outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
+outAcc
 
 ####WORKING ON AREA B
 #importing the shp file of area B
