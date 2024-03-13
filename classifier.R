@@ -31,14 +31,14 @@ library(maptools)
 #B2, B3, B4, B8 at 10m resolution
 #B5, B6, B7, B8A, B11, B12 at 20m resolution
 #B1, B9, B10 at 60m resolution
-#Projected resolution: 92 m/px?
 
 
 #Path to tiff files
 data_path='C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/unzipped'
 #Read the raster bands: B2, B3, B4, B5, B6, B7, B8, B8A, B11 and B12:
-sentinel <- c(list.files(paste0(data_path), pattern = ".*B.*[2345678]", full.names = TRUE),
-              'C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/unzipped/B11')
+sentinel <- c(list.files(paste0(data_path), pattern = ".*B.*[2345678].*.tif", full.names = TRUE),
+              'C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/unzipped/B11.tif')
+#the dot means that you ONLY pick those specific names
 rst_lst <- lapply(sentinel, FUN = raster)
 
 #Reorganizing the bands in the right order
@@ -46,12 +46,16 @@ b_08A <- rst_lst[[9]]
 b_11 <- rst_lst[[10]]
 b_12 <- rst_lst[[8]]
 
+rst_lst[[8]] <- b_08A
+rst_lst[[9]] <- b_11
+rst_lst[[10]] <- b_12 
+
 bands_names <- c("B02","B03","B04","B05","B06", "B07","B08", "B8A", "B11", "B12")
 names(rst_lst) <- bands_names
 
 
 #Visualize the image in Natural Color (R = Red, G = Green, B = Blue).
-suppressWarnings({viewRGB(brick(rst_lst[1:3]), r = 3, g = 2, b = 1)})
+#suppressWarnings({viewRGB(brick(rst_lst[1:3]), r = 3, g = 2, b = 1)})
 
 #Resampling bands so that they all have a 10m resolution
 rst_for_prediction <- vector(mode = "list", length = length(rst_lst))
@@ -104,7 +108,7 @@ saveRDS(ptsamp5_5, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_
 
 
 #in quest parte prendo le informazioni dei pixel dove il punto random è caduto e lo salvo in un dataframe. 
-dt1 <- brick_for_prediction %>%   #%>% takes the output of one function and passes it into another function as an argument, read it as 'and then'
+dt1 <- brick_for_prediction %>%    #%>% takes the output of one function and passes it into another function as an argument, read it as 'and then'
   raster::extract(y = ptsamp1_1) %>% 
   as.data.table %>%   #Functions to check if an object is data.table, or coerce it if possible
   .[, id_cls := ptsamp1_1@data] # add the class names to each row
@@ -176,16 +180,73 @@ model_rf <- caret::train(class ~ . , method = "rf", data = dt_train, #neural net
                                                   importance = TRUE,
                                                   tuneGrid = data.frame(mtry = c(2, 3, 4, 5, 8)),
                                                   trControl = ctrl)
-
+  
 #saving the model
 saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/sentinel2/10m/modello/","model_rf_10m","area_A",".rds")) 
 
 #predict values based on the input data
 predict_rf <- raster::predict(object = brick_for_prediction,
                               model = model_rf, type = 'raw')
-writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/sentinel2/modello/","sentinel_10m_area_A_classification",".tiff"),overwrite=T )
+writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/sentinel2/10m/modello/","sentinel_10m_area_A_classification",".tiff"),overwrite=T )
 
 
+####EVALUATION OF THE MODEL 
+# create cross-validation folds (splits the data into n random groups)
+n_folds <- 10
+set.seed(99)
+folds <- createFolds(1:nrow(dt_train), k = n_folds)
+# Set the seed at each resampling iteration. Useful when running CV in parallel.
+seeds <- vector(mode = "list", length = n_folds + 1) # +1 for the final model. It's an empty vector?
+for(i in 1:n_folds) seeds[[i]] <- sample.int(1000, n_folds) #It gives you a random sample of n_folds (10) numbers from 1 to 1000
+seeds[n_folds + 1] <- sample.int(1000, 1) # seed for the final model
+
+
+ctrl <- trainControl(summaryFunction = multiClassSummary,  #Control the computational nuances of the train function
+                     method = "cv",
+                     number = n_folds, #number of folds
+                     search = "grid", #describing how the tuning parameter grid is determined
+                     classProbs = TRUE, #should class probabilities be computed for classification models (along with predicted values) in each resample?
+                                       #not implemented for SVM; will just get a warning. 
+                     savePredictions = TRUE,
+                     index = folds, #a list with elements for each resampling iteration. 
+                                    #Each list element is a vector of integers corresponding to the rows used for training at that iteration.
+                     seeds = seeds)
+
+
+
+library(dismo)
+set.seed(99)
+j <- kfold(dt_train, k = 5, by=dt_train$class)
+#k-fold partitioning of a data set for model testing purposes. 
+#Each record in a matrix (or similar data structure) is randomly assigned to a group. Group numbers are between 1 and k
+#Gives back a vector with group assignments
+
+x <- list()
+  for (k in 1:5) {
+    train <- dt_train[j!= k, ]
+    test <- dt_train[j == k, ]
+    cart <- caret::train(class ~ . , method = "rf", data = train, #neural network o vector machine
+                                                  importance = TRUE,
+                                                  tuneGrid = data.frame(mtry = c(2, 3, 4, 5, 8)),
+                                                  trControl = ctrl)
+    pclass <- raster::predict(object = test,
+                              model = cart, type = 'raw')
+    # create a data.frame using the reference and prediction
+    x[[k]] <- cbind(test$class, as.integer(pclass))
+  }
+
+
+
+    train <- dt_train[j!= 1, ]
+    test <- dt_train[j == 1, ]
+    cart <- caret::train(class ~ . , method = "rf", data = train, #neural network o vector machine
+                                                  importance = TRUE,
+                                                  tuneGrid = data.frame(mtry = c(2, 3, 4, 5, 8)),
+                                                  trControl = ctrl)
+    pclass <- raster::predict(object = test,
+                              model = cart, type = 'raw')
+    # create a data.frame using the reference and prediction
+    x[[1]] <- cbind(test$class, as.integer(pclass))
 
 
 ####WORKING ON AREA B
