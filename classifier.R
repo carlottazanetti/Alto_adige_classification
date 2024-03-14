@@ -27,7 +27,7 @@ library(tidyr)
 library(maptools)
 
 
-###############WORKING WITH SENTINEL2 DATASET 10m RESOLUTION
+############### WORKING WITH SENTINEL2 DATASET 10m RESOLUTION
 #B2, B3, B4, B8 at 10m resolution
 #B5, B6, B7, B8A, B11, B12 at 20m resolution
 #B1, B9, B10 at 60m resolution
@@ -191,30 +191,6 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####EVALUATION OF THE MODEL 
-
-library(dismo)
-set.seed(99)
-j <- kfold(dt_train, k = 5, by=dt_train$class)
-#k-fold partitioning of a data set for model testing purposes. 
-#Each record in a matrix (or similar data structure) is randomly assigned to a group. Group numbers are between 1 and k
-#Gives back a vector with group assignments
-
-x <- list()
-  for (k in 1:5) {
-    train <- dt_train[j!= k, ]
-    test <- dt_train[j == k, ] #takes the kth row
-    cart <- caret::train(class ~ . , method = "rf", data = train, #neural network o vector machine
-                                                  importance = TRUE,
-                                                  tuneGrid = data.frame(mtry = c(2, 3, 4, 5, 8)),
-                                                  trControl = ctrl)
-    pclass <- raster::predict(object = test,
-                              model = cart, type = 'raw')
-    # create a data.frame using the reference and prediction
-    x[[k]] <- cbind(dt_test$class, as.integer(pclass))
-  }
-
-
-
 x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
 
 y <- rbind(x)
@@ -231,6 +207,7 @@ diag <- diag(conmat)
 # Overall Accuracy
 OA <- sum(diag) / n
 OA
+#OA -> 0.2018436
 
 rowsums <- apply(conmat, 1, sum)
 p <- rowsums / n
@@ -240,12 +217,20 @@ q <- colsums / n
 expAccuracy <- sum(p*q)
 kappa <- (OA - expAccuracy) / (1 - expAccuracy)
 kappa
+#kappa -> 0.004016466
 
 PA <- diag / colsums
 # User accuracy
 UA <- diag / rowsums
 outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
 outAcc
+
+#  producerAccuracy userAccuracy
+#1        0.2062659   0.27193676
+#2        0.1850416   0.06454106
+#3        0.2273819   0.16498838
+#4        0.1940845   0.27962662
+#5        0.1951629   0.23474747
 
 ####WORKING ON AREA B
 #importing the shp file of area B
@@ -365,9 +350,50 @@ predict_rf <- raster::predict(object = brick_for_prediction,
 writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/sentinel2/10m/modello/","sentinel_10m_area_B_classification",".tiff"),overwrite=T )
 
 
+####EVALUATION OF THE MODEL 
+x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
+
+y <- rbind(x)
+y <- data.frame(y)
+colnames(y) <- c('observed', 'predicted')
+conmat <- table(y)
+# change the name of the classes
+#colnames(conmat) <- classdf$classnames
+#rownames(conmat) <- classdf$classnames
+
+n <- sum(conmat)
+# number of correctly classified cases per class
+diag <- diag(conmat)
+# Overall Accuracy
+OA <- sum(diag) / n
+OA
+#OA -> 0.1982678
+
+rowsums <- apply(conmat, 1, sum)
+p <- rowsums / n
+# predicted cases per class
+colsums <- apply(conmat, 2, sum)
+q <- colsums / n
+expAccuracy <- sum(p*q)
+kappa <- (OA - expAccuracy) / (1 - expAccuracy)
+kappa
+#kappa -> -0.002011258
+
+PA <- diag / colsums
+# User accuracy
+UA <- diag / rowsums
+outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
+outAcc
+
+#  producerAccuracy userAccuracy
+#1        0.2029718   0.25490573
+#2        0.1812901   0.11458937
+#3        0.1850900   0.06925741
+#4        0.2037417   0.32474028
+#5        0.1991607   0.22876080
 
 
-###àWORKING ON AREA C
+####WORKING ON AREA C
 #importing the shp file of area C
 poly_area_C <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/poly_training_C32N.shp')
 poly_area_C@data$id <- as.integer(factor(poly_area_C@data$id))
@@ -484,6 +510,47 @@ predict_rf <- raster::predict(object = brick_for_prediction,
 writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/sentinel2/10m/modello/","sentinel_10m_area_C_classification",".tiff"),overwrite=T )
 
 
+####EVALUATION OF THE MODEL 
+x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
+
+y <- rbind(x)
+y <- data.frame(y)
+colnames(y) <- c('observed', 'predicted')
+conmat <- table(y)
+# change the name of the classes
+#colnames(conmat) <- classdf$classnames
+#rownames(conmat) <- classdf$classnames
+
+n <- sum(conmat)
+# number of correctly classified cases per class
+diag <- diag(conmat)
+# Overall Accuracy
+OA <- sum(diag) / n
+OA
+#OA -> 0.2028805
+
+rowsums <- apply(conmat, 1, sum)
+p <- rowsums / n
+# predicted cases per class
+colsums <- apply(conmat, 2, sum)
+q <- colsums / n
+expAccuracy <- sum(p*q)
+kappa <- (OA - expAccuracy) / (1 - expAccuracy)
+kappa
+#kappa -> 0.001445136
+
+PA <- diag / colsums
+# User accuracy
+UA <- diag / rowsums
+outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
+outAcc
+
+#  producerAccuracy userAccuracy
+#1        0.2106409   0.45150162
+#2        0.2021918   0.14909091
+#3        0.1897019   0.08983957
+#4        0.1918180   0.19449735
+#5        0.2038489   0.12052255
 
 ####WORKING ON AREA D
 #importing the shp file of area D
@@ -601,11 +668,54 @@ predict_rf <- raster::predict(object = brick_for_prediction,
                               model = model_rf, type = 'raw')
 writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/sentinel2/10m/modello/","sentinel_10m_area_D_classification",".tiff"),overwrite=T )
 
+
+####EVALUATION OF THE MODEL 
+x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
+
+y <- rbind(x)
+y <- data.frame(y)
+colnames(y) <- c('observed', 'predicted')
+conmat <- table(y)
+# change the name of the classes
+#colnames(conmat) <- classdf$classnames
+#rownames(conmat) <- classdf$classnames
+
+n <- sum(conmat)
+# number of correctly classified cases per class
+diag <- diag(conmat)
+# Overall Accuracy
+OA <- sum(diag) / n
+OA
+#OA -> 0.2069662
+
+rowsums <- apply(conmat, 1, sum)
+p <- rowsums / n
+# predicted cases per class
+colsums <- apply(conmat, 2, sum)
+q <- colsums / n
+expAccuracy <- sum(p*q)
+kappa <- (OA - expAccuracy) / (1 - expAccuracy)
+kappa
+#kappa ->  0.005699351
+
+PA <- diag / colsums
+# User accuracy
+UA <- diag / rowsums
+outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
+outAcc
+
+#  producerAccuracy userAccuracy
+#1        0.2099300   0.68691770
+#2        0.2049505   0.04035874
+#3        0.1976991   0.12788876
+#4        0.2158481   0.10335968
+#5        0.1837223   0.06371939
+
+
 ###############WORKING WITH SENTINEL2 DATASET 20m RESOLUTION
 #B2, B3, B4, B8 at 10m resolution
 #B5, B6, B7, B8A, B11, B12 at 20m resolution
 #B1, B9, B10 at 60m resolution
-#Projected resolution: 92 m/px?
 
 #Resampling bands so that they all have a 20m resolution
 rst_for_prediction <- vector(mode = "list", length = length(rst_lst))
@@ -618,6 +728,8 @@ b_20m <- c("B05", "B06", "B07", "B8A", "B11", "B12")
 rst_for_prediction[b_20m] <- rst_lst[b_20m]
 
 brick_for_prediction <- brick(rst_for_prediction)
+
+
 
 #####WORKING ON AREA A
 #importing the shp file of area A
@@ -732,6 +844,48 @@ saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_
 predict_rf <- raster::predict(object = brick_for_prediction,
                               model = model_rf, type = 'raw')
 writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/sentinel2/20m/modello/","sentinel_20m_area_A_classification",".tiff"),overwrite=T )
+
+####EVALUATION OF THE MODEL 
+x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
+
+y <- rbind(x)
+y <- data.frame(y)
+colnames(y) <- c('observed', 'predicted')
+conmat <- table(y)
+# change the name of the classes
+#colnames(conmat) <- classdf$classnames
+#rownames(conmat) <- classdf$classnames
+
+n <- sum(conmat)
+# number of correctly classified cases per class
+diag <- diag(conmat)
+# Overall Accuracy
+OA <- sum(diag) / n
+OA
+#OA -> 0.2057206
+
+rowsums <- apply(conmat, 1, sum)
+p <- rowsums / n
+# predicted cases per class
+colsums <- apply(conmat, 2, sum)
+q <- colsums / n
+expAccuracy <- sum(p*q)
+kappa <- (OA - expAccuracy) / (1 - expAccuracy)
+kappa
+#kappa -> 0.007510978
+
+PA <- diag / colsums
+# User accuracy
+UA <- diag / rowsums
+outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
+outAcc
+
+#  producerAccuracy userAccuracy
+#1        0.1972370   0.27619230
+#2        0.2190360   0.07030944
+#3        0.2613119   0.19159796
+#4        0.1997028   0.27395026
+#5        0.1840669   0.21797980
 
 
 
@@ -855,6 +1009,48 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 
+####EVALUATION OF THE MODEL 
+x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
+
+y <- rbind(x)
+y <- data.frame(y)
+colnames(y) <- c('observed', 'predicted')
+conmat <- table(y)
+# change the name of the classes
+#colnames(conmat) <- classdf$classnames
+#rownames(conmat) <- classdf$classnames
+
+n <- sum(conmat)
+# number of correctly classified cases per class
+diag <- diag(conmat)
+# Overall Accuracy
+OA <- sum(diag) / n
+OA
+#OA -> 0.1934908
+
+rowsums <- apply(conmat, 1, sum)
+p <- rowsums / n
+# predicted cases per class
+colsums <- apply(conmat, 2, sum)
+q <- colsums / n
+expAccuracy <- sum(p*q)
+kappa <- (OA - expAccuracy) / (1 - expAccuracy)
+kappa
+#kappa -> -0.007859439
+
+PA <- diag / colsums
+# User accuracy
+UA <- diag / rowsums
+outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
+outAcc
+
+#  producerAccuracy userAccuracy
+#1        0.1975956   0.29855072
+#2        0.1857515   0.10936602
+#3        0.1994764   0.07395186
+#4        0.1901479   0.25584541
+#5        0.1940822   0.23104478
+
 
 ####WORKING ON AREA C
 #importing the shp file of area C
@@ -973,6 +1169,47 @@ predict_rf <- raster::predict(object = brick_for_prediction,
 writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/sentinel2/20m/modello/","sentinel_20m_area_C_classification",".tiff"),overwrite=T )
 
 
+####EVALUATION OF THE MODEL 
+x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
+
+y <- rbind(x)
+y <- data.frame(y)
+colnames(y) <- c('observed', 'predicted')
+conmat <- table(y)
+# change the name of the classes
+#colnames(conmat) <- classdf$classnames
+#rownames(conmat) <- classdf$classnames
+
+n <- sum(conmat)
+# number of correctly classified cases per class
+diag <- diag(conmat)
+# Overall Accuracy
+OA <- sum(diag) / n
+OA
+#OA -> 0.2065851
+
+rowsums <- apply(conmat, 1, sum)
+p <- rowsums / n
+# predicted cases per class
+colsums <- apply(conmat, 2, sum)
+q <- colsums / n
+expAccuracy <- sum(p*q)
+kappa <- (OA - expAccuracy) / (1 - expAccuracy)
+kappa
+#kappa -> 0.005415555
+
+PA <- diag / colsums
+# User accuracy
+UA <- diag / rowsums
+outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
+outAcc
+
+#  producerAccuracy userAccuracy
+#1        0.2139610   0.48484848
+#2        0.2073917   0.15757576
+#3        0.1963688   0.08676377
+#4        0.1933506   0.17354497
+#5        0.2035398   0.11840412
 
 ####WORKING ON AREA D
 #importing the shp file of area D
@@ -1092,6 +1329,51 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 
+
+####EVALUATION OF THE MODEL 
+x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
+
+y <- rbind(x)
+y <- data.frame(y)
+colnames(y) <- c('observed', 'predicted')
+conmat <- table(y)
+# change the name of the classes
+#colnames(conmat) <- classdf$classnames
+#rownames(conmat) <- classdf$classnames
+
+n <- sum(conmat)
+# number of correctly classified cases per class
+diag <- diag(conmat)
+# Overall Accuracy
+OA <- sum(diag) / n
+OA
+#OA -> 0.2075203
+
+rowsums <- apply(conmat, 1, sum)
+p <- rowsums / n
+# predicted cases per class
+colsums <- apply(conmat, 2, sum)
+q <- colsums / n
+expAccuracy <- sum(p*q)
+kappa <- (OA - expAccuracy) / (1 - expAccuracy)
+kappa
+#kappa -> 0.005528627
+
+PA <- diag / colsums
+# User accuracy
+UA <- diag / rowsums
+outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
+outAcc
+
+#  producerAccuracy userAccuracy
+#1        0.2073695   0.68077295
+#2        0.2177243   0.03845411
+#3        0.2066906   0.13196034
+#4        0.2078969   0.10584615
+#5        0.2043081   0.06526272
+
+
+
 ######################LANDSAT8 DATASET########################
 #7 bands with a 30m resolution and 1 band (B10) in the IR with a 100 m resolution
 
@@ -1105,7 +1387,7 @@ bands_names <- c("B01","B02","B03","B04","B05","B06", "B07", "B10")
 names(rst_lst) <- bands_names
 
 #Visualize the image in Natural Color (R = Red, G = Green, B = Blue).
-suppressWarnings({viewRGB(brick(rst_lst[1:4]), r = 4, g = 3, b = 2)})
+#suppressWarnings({viewRGB(brick(rst_lst[1:4]), r = 4, g = 3, b = 2)})
 
 brick_for_prediction <- brick(rst_lst)
 
@@ -1223,6 +1505,48 @@ predict_rf <- raster::predict(object = brick_for_prediction,
                               model = model_rf, type = 'raw')
 writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/landsat8/modello/","landsat_area_A_classification",".tiff"),overwrite=T )
 
+
+####EVALUATION OF THE MODEL 
+x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
+
+y <- rbind(x)
+y <- data.frame(y)
+colnames(y) <- c('observed', 'predicted')
+conmat <- table(y)
+# change the name of the classes
+#colnames(conmat) <- classdf$classnames
+#rownames(conmat) <- classdf$classnames
+
+n <- sum(conmat)
+# number of correctly classified cases per class
+diag <- diag(conmat)
+# Overall Accuracy
+OA <- sum(diag) / n
+OA
+#OA -> 0.2075203
+
+rowsums <- apply(conmat, 1, sum)
+p <- rowsums / n
+# predicted cases per class
+colsums <- apply(conmat, 2, sum)
+q <- colsums / n
+expAccuracy <- sum(p*q)
+kappa <- (OA - expAccuracy) / (1 - expAccuracy)
+kappa
+#kappa -> 0.005528627
+
+PA <- diag / colsums
+# User accuracy
+UA <- diag / rowsums
+outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
+outAcc
+
+#  producerAccuracy userAccuracy
+#1        0.2073695   0.68077295
+#2        0.2177243   0.03845411
+#3        0.2066906   0.13196034
+#4        0.2078969   0.10584615
+#5        0.2043081   0.06526272
 
 
 
@@ -1582,14 +1906,12 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ###############WORKING WITH ENMAP DATASET
-rst_lst <- stack('C:/Users/carlo/Desktop/tesi/alto_adige/enmap/dataset/ENMAP02/ENMAP01-____L2A-DT0000041009_20230909T102954Z_002_V010303_20230910T054452Z-SPECTRAL_IMAGE.tif')
-
-#library(terra)
-#rst_lst <- rast('C:/Users/carlo/Desktop/tesi/alto_adige/enmap/dataset/ENMAP02/ENMAP01-____L2A-DT0000041009_20230909T102954Z_002_V010303_20230910T054452Z-SPECTRAL_IMAGE.tif')
-setMinMax(rst_lst)
+#Importing only the area of interest (A)
+rst_lst <- stack('C:/Users/carlo/Desktop/tesi/alto_adige/enmap/enmap_A.tif')
+rst_lst <- as.list(rst_lst)   #transforming rasterstack into list
 
 #Visualize the image in Natural Color (R = Red, G = Green, B = Blue).
-suppressWarnings({viewRGB(brick(rst_lst[1:44]), r = 44, g = 21, b = 5)})
+#suppressWarnings({viewRGB(brick(rst_lst[1:44]), r = 44, g = 21, b = 5)})
 
 brick_for_prediction <- brick(rst_lst)
 
@@ -1600,9 +1922,6 @@ brick_for_prediction <- brick(rst_lst)
 poly_area_A <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/poly_training_A32N.shp')
 poly_area_A@data$id <- as.integer(factor(poly_area_A@data$id))
 setDT(poly_area_A@data)
-
-#only focusing on the area where the polygons are
-brick_for_prediction <-crop(brick_for_prediction, poly_area_A)
 
 
 ptsamp1<-subset(poly_area_A, id == "1") #seleziono solo i poigoni con id=1
@@ -1699,7 +2018,7 @@ ctrl <- trainControl(summaryFunction = multiClassSummary,
 
 model_rf <- caret::train(class ~ . , method = "rf", data = dt_train, #neural network o vector machine
                                                   importance = TRUE,
-                         
+                                                  tuneGrid = data.frame(mtry = c(2, 3, 4, 5, 8)),
                                                   trControl = ctrl)
 
 #saving the model
