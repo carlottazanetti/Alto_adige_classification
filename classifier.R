@@ -1906,18 +1906,23 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ###############WORKING WITH ENMAP DATASET
+#224 bands with 30 m resolution
+#bands 131, 132, 133, 134, 135 have missing values
+
+#####WORKING ON AREA A
 #Importing only the area of interest (A)
 rst_lst <- stack('C:/Users/carlo/Desktop/tesi/alto_adige/enmap/enmap_A.tif')
 rst_lst <- as.list(rst_lst)   #transforming rasterstack into list
+names(rst_lst) <- 1:224
+
+#dropping the columns with missing values
+rst_lst <- rst_lst[-c(131:135)]
 
 #Visualize the image in Natural Color (R = Red, G = Green, B = Blue).
 #suppressWarnings({viewRGB(brick(rst_lst[1:44]), r = 44, g = 21, b = 5)})
 
 brick_for_prediction <- brick(rst_lst)
 
-
-
-#####WORKING ON AREA A
 #importing the shp file of area A
 poly_area_A <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/poly_training_A32N.shp')
 poly_area_A@data$id <- as.integer(factor(poly_area_A@data$id))
@@ -1980,7 +1985,7 @@ dt5 <- brick_for_prediction %>%
 #merge i due dataframe in un unio dataframe. 
 dt<-rbind(dt1, dt2, dt3, dt4, dt5)
 names(dt)[names(dt) == 'id_cls'] <- 'class'
-#dt<-dt %>% drop_na()
+dt<-dt %>% drop_na()
 dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd', 'e'))
 
 
@@ -2032,19 +2037,23 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####WORKING ON AREA B
+#Importing only the area of interest (B)
+rst_lst <- stack('C:/Users/carlo/Desktop/tesi/alto_adige/enmap/enmap_B.tif')
+rst_lst <- as.list(rst_lst)   #transforming rasterstack into list
+names(rst_lst) <- 1:224
+
+#dropping the columns with missing values
+rst_lst <- rst_lst[-c(131:135)]
+
+#Visualize the image in Natural Color (R = Red, G = Green, B = Blue).
+#suppressWarnings({viewRGB(brick(rst_lst[1:44]), r = 44, g = 21, b = 5)})
+
+brick_for_prediction <- brick(rst_lst)
+
 #importing the shp file of area B
-poly_area_B <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/poly_training_B31N.shp')
+poly_area_B <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/poly_training_B32N.shp')
 poly_area_B@data$id <- as.integer(factor(poly_area_B@data$id))
 setDT(poly_area_B@data)
-
-#setting the coordinates from m to km so that they match the extent of the sentinel image
-#poly_area_B <- sp::spTransform(poly_area_B,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
-
-#rewriting brick_for_prediction so that it's not cropped on the area A
-brick_for_prediction <- brick(rst_for_prediction)
-#only focusing on the area where the polygons are
-brick_for_prediction <-crop(brick_for_prediction, poly_area_B)
-
 
 ptsamp1<-subset(poly_area_B, id == "1") #seleziono solo i poigoni con id=1
 ptsamp1_1 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=1 
@@ -2153,9 +2162,21 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 
-###àWORKING ON AREA C
+####WORKING ON AREA C
+rst_lst <- stack('C:/Users/carlo/Desktop/tesi/alto_adige/enmap/enmap_C.tif')
+rst_lst <- as.list(rst_lst)   #transforming rasterstack into list
+names(rst_lst) <- 1:224
+
+#dropping the columns with missing values
+rst_lst <- rst_lst[-c(131:135)]
+
+#Visualize the image in Natural Color (R = Red, G = Green, B = Blue).
+#suppressWarnings({viewRGB(brick(rst_lst[1:44]), r = 44, g = 21, b = 5)})
+
+brick_for_prediction <- brick(rst_lst)
+
 #importing the shp file of area C
-poly_area_C <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/poly_training_C31N.shp')
+poly_area_C <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/poly_training_C32N.shp')
 poly_area_C@data$id <- as.integer(factor(poly_area_C@data$id))
 setDT(poly_area_C@data)
 
@@ -2275,8 +2296,20 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####WORKING ON AREA D
+rst_lst <- stack('C:/Users/carlo/Desktop/tesi/alto_adige/enmap/enmap_D.tif')
+rst_lst <- as.list(rst_lst)   #transforming rasterstack into list
+names(rst_lst) <- 1:224
+
+#dropping the columns with missing values
+rst_lst <- rst_lst[-c(131:135)]
+
+#Visualize the image in Natural Color (R = Red, G = Green, B = Blue).
+#suppressWarnings({viewRGB(brick(rst_lst[1:44]), r = 44, g = 21, b = 5)})
+
+brick_for_prediction <- brick(rst_lst)
+
 #importing the shp file of area D
-poly_area_D <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/poly_training_D31N.shp')
+poly_area_D <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/poly_training_D32N.shp')
 poly_area_D@data$id <- as.integer(factor(poly_area_D@data$id))
 setDT(poly_area_D@data)
 
