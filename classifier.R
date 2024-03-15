@@ -2055,6 +2055,7 @@ poly_area_B <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/a
 poly_area_B@data$id <- as.integer(factor(poly_area_B@data$id))
 setDT(poly_area_B@data)
 
+
 ptsamp1<-subset(poly_area_B, id == "1") #seleziono solo i poigoni con id=1
 ptsamp1_1 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=1 
 ptsamp1_1$class <- over(ptsamp1_1, ptsamp1)$id #do il valore di id=1 ai punti random
