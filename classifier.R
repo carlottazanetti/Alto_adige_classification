@@ -61,7 +61,7 @@ names(rst_lst) <- bands_names
 rst_for_prediction <- vector(mode = "list", length = length(rst_lst))
 names(rst_for_prediction) <- names(rst_lst)
 for (b in c("B05", "B06", "B07", "B8A", "B11", "B12")){
-    rst_for_prediction[[b]] <- raster::resample(x = rst_lst[[b]],
+    rst_for_prediction[[b]] <- raster::resample(x = rst_lst[[b]], 
                                                 y = rst_lst$B02)}
 
 b_10m <- c("B02", "B03", "B04", "B08")
@@ -2055,6 +2055,9 @@ poly_area_B <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/a
 poly_area_B@data$id <- as.integer(factor(poly_area_B@data$id))
 setDT(poly_area_B@data)
 
+#Cropping since in this case the area is slightly bigger than the polygons'area of interest
+brick_for_prediction <-crop(brick_for_prediction, poly_area_B)
+
 
 ptsamp1<-subset(poly_area_B, id == "1") #seleziono solo i poigoni con id=1
 ptsamp1_1 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=1 
@@ -2160,6 +2163,46 @@ predict_rf <- raster::predict(object = brick_for_prediction,
                               model = model_rf, type = 'raw')
 writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/enmap/modello/","enmap_area_B_classification",".tiff"),overwrite=T )
 
+####EVALUATION OF THE MODEL 
+x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
+
+y <- rbind(x)
+y <- data.frame(y)
+colnames(y) <- c('observed', 'predicted')
+conmat <- table(y)
+# change the name of the classes
+#colnames(conmat) <- classdf$classnames
+#rownames(conmat) <- classdf$classnames
+
+n <- sum(conmat) #number of cases
+diag <- diag(conmat) # number of correctly classified cases per class
+# Overall Accuracy
+OA <- sum(diag) / n
+OA
+#OA -> 0.1976157
+
+rowsums <- apply(conmat, 1, sum) #sum of all the values of the rows (1 means rows and 2 means columns). It's a value for each column
+#So basically every column is the number of times that that specific class was predicted (either correctly or incorrectly)
+p <- rowsums / n # predicted cases per class
+colsums <- apply(conmat, 2, sum) #every row is the number of times a certain class was observed (either correctly or incorrectly predicted)
+q <- colsums / n
+expAccuracy <- sum(p*q)
+kappa <- (OA - expAccuracy) / (1 - expAccuracy)
+kappa
+#kappa -> 0.005528627
+
+PA <- diag / colsums
+# User accuracy
+UA <- diag / rowsums
+outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
+outAcc
+
+#  producerAccuracy userAccuracy
+#1        0.2017083   0.34368878
+#2        0.2093458   0.06726727
+#3        0.1949458   0.09600000
+#4        0.1871921   0.24880952
+#5        0.2012293   0.22212389
 
 
 
