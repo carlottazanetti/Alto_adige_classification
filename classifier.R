@@ -34,10 +34,10 @@ library(maptools)
 
 
 #Path to tiff files
-data_path='C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/unzipped'
-#Read the raster bands: B2, B3, B4, B5, B6, B7, B8, B8A, B11 and B12:
-sentinel <- c(list.files(paste0(data_path), pattern = ".*B.*[2345678].*.tif", full.names = TRUE),
-              'C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/unzipped/B11.tif')
+data_path='C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_sx/GRANULE/L2A_T32TPS_A042919_20230910T101420/IMG_DATAR10m'
+#Read the raster bands: B2, B3, B4, B8:
+prova <- raster('C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_sx/GRANULE/L2A_T32TPS_A042919_20230910T101420/IMG_DATAR10m/T32TPS_20230910T100601_B08_10m.jp2')
+sentinel <- list.files(paste0(data_path), pattern = ".*B.*.jp2", full.names = TRUE)
 #the dot means that you ONLY pick those specific names
 rst_lst <- lapply(sentinel, FUN = raster)
 
