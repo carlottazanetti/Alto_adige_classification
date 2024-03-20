@@ -29,28 +29,27 @@ library(maptools)
 
 ############### WORKING WITH SENTINEL2 DATASET 10m RESOLUTION
 #B2, B3, B4, B8 at 10m resolution
-#B5, B6, B7, B8A, B11, B12 at 20m resolution
-#B1, B9, B10 at 60m resolution
+#B1, B5, B6, B7, B8A, B11, B12 at 20m resolution
+#B9, B10 at 60m resolution
 
 
 #Path to tiff files
-data_path='C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_sx/GRANULE/L2A_T32TPS_A042919_20230910T101420/IMG_DATAR10m'
+data_path='C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_sx/GRANULE/L2A_T32TPS_A042919_20230910T101420/IMG_DATA/R10m'
 #Read the raster bands: B2, B3, B4, B8:
-prova <- raster('C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_sx/GRANULE/L2A_T32TPS_A042919_20230910T101420/IMG_DATAR10m/T32TPS_20230910T100601_B08_10m.jp2')
 sentinel <- list.files(paste0(data_path), pattern = ".*B.*.jp2", full.names = TRUE)
 #the dot means that you ONLY pick those specific names
 rst_lst <- lapply(sentinel, FUN = raster)
 
 #Reorganizing the bands in the right order
-b_08A <- rst_lst[[9]]
-b_11 <- rst_lst[[10]]
-b_12 <- rst_lst[[8]]
+#b_08A <- rst_lst[[9]]
+#b_11 <- rst_lst[[10]]
+#b_12 <- rst_lst[[8]]
 
-rst_lst[[8]] <- b_08A
-rst_lst[[9]] <- b_11
-rst_lst[[10]] <- b_12 
+#rst_lst[[8]] <- b_08A
+#rst_lst[[9]] <- b_11
+#rst_lst[[10]] <- b_12 
 
-bands_names <- c("B02","B03","B04","B05","B06", "B07","B08", "B8A", "B11", "B12")
+bands_names <- c("B02","B03","B04","B08")
 names(rst_lst) <- bands_names
 
 
@@ -58,16 +57,16 @@ names(rst_lst) <- bands_names
 #suppressWarnings({viewRGB(brick(rst_lst[1:3]), r = 3, g = 2, b = 1)})
 
 #Resampling bands so that they all have a 10m resolution
-rst_for_prediction <- vector(mode = "list", length = length(rst_lst))
-names(rst_for_prediction) <- names(rst_lst)
-for (b in c("B05", "B06", "B07", "B8A", "B11", "B12")){
-    rst_for_prediction[[b]] <- raster::resample(x = rst_lst[[b]], 
-                                                y = rst_lst$B02)}
+#rst_for_prediction <- vector(mode = "list", length = length(rst_lst))
+#names(rst_for_prediction) <- names(rst_lst)
+#for (b in c("B05", "B06", "B07", "B8A", "B11", "B12")){
+     #rst_for_prediction[[b]] <- raster::resample(x = rst_lst[[b]], 
+                                                #y = rst_lst$B02)}
 
-b_10m <- c("B02", "B03", "B04", "B08")
-rst_for_prediction[b_10m] <- rst_lst[b_10m]
+#b_10m <- c("B02", "B03", "B04", "B08")
+#rst_for_prediction[b_10m] <- rst_lst[b_10m]
 
-brick_for_prediction <- brick(rst_for_prediction)
+brick_for_prediction <- brick(rst_lst)
 
 
 
@@ -191,56 +190,47 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####EVALUATION OF THE MODEL 
-x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
+model_rf$times$everything   # total computation time
 
-y <- rbind(x)
-y <- data.frame(y)
-colnames(y) <- c('observed', 'predicted')
-conmat <- table(y)
-# change the name of the classes
-#colnames(conmat) <- classdf$classnames
-#rownames(conmat) <- classdf$classnames
+plot(model_rf) # tuning results
 
-n <- sum(conmat)
-# number of correctly classified cases per class
-diag <- diag(conmat)
-# Overall Accuracy
-OA <- sum(diag) / n
-OA
-#OA -> 0.2018436
+#confusion matrix and statistics
+cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
+                         dt_test$class)
+cm_rf
 
-rowsums <- apply(conmat, 1, sum)
-p <- rowsums / n
-# predicted cases per class
-colsums <- apply(conmat, 2, sum)
-q <- colsums / n
-expAccuracy <- sum(p*q)
-kappa <- (OA - expAccuracy) / (1 - expAccuracy)
-kappa
-#kappa -> 0.004016466
+#preditcor importance
+randomForest::importance(model_rf$finalModel) %>% 
+  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
+  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+          width = 350, height = 300)
 
-PA <- diag / colsums
-# User accuracy
-UA <- diag / rowsums
-outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
-outAcc
+#mean decrease accuracy and mean decrease gini 
+randomForest::varImpPlot(model_rf$finalModel)
 
-#  producerAccuracy userAccuracy
-#1        0.2062659   0.27193676
-#2        0.1850416   0.06454106
-#3        0.2273819   0.16498838
-#4        0.1940845   0.27962662
-#5        0.1951629   0.23474747
 
 ####WORKING ON AREA B
+#Path to tiff files
+data_path='C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_dx/GRANULE/L2A_T32TQS_A042919_20230910T101420/IMG_DATA/R10m'
+#Read the raster bands: B2, B3, B4, B8:
+sentinel <- list.files(paste0(data_path), pattern = ".*B.*.jp2", full.names = TRUE)
+#the dot means that you ONLY pick those specific names
+rst_lst <- lapply(sentinel, FUN = raster)
+
+bands_names <- c("B02","B03","B04","B08")
+names(rst_lst) <- bands_names
+
+#Visualize the image in Natural Color (R = Red, G = Green, B = Blue).
+#suppressWarnings({viewRGB(brick(rst_lst[1:3]), r = 3, g = 2, b = 1)})
+
+brick_for_prediction <- brick(rst_lst)
+
+
 #importing the shp file of area B
 poly_area_B <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/poly_training_B32N.shp')
 poly_area_B@data$id <- as.integer(factor(poly_area_B@data$id))
 setDT(poly_area_B@data)
 
-
-#rewriting brick_for_prediction so that it's not cropped on the area A
-brick_for_prediction <- brick(rst_for_prediction)
 #only focusing on the area where the polygons are
 brick_for_prediction <-crop(brick_for_prediction, poly_area_B)
 
@@ -351,47 +341,23 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####EVALUATION OF THE MODEL 
-x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
+model_rf$times$everything   # total computation time
 
-y <- rbind(x)
-y <- data.frame(y)
-colnames(y) <- c('observed', 'predicted')
-conmat <- table(y)
-# change the name of the classes
-#colnames(conmat) <- classdf$classnames
-#rownames(conmat) <- classdf$classnames
+plot(model_rf) # tuning results
 
-n <- sum(conmat)
-# number of correctly classified cases per class
-diag <- diag(conmat)
-# Overall Accuracy
-OA <- sum(diag) / n
-OA
-#OA -> 0.1982678
+#confusion matrix and statistics
+cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
+                         dt_test$class)
+cm_rf
 
-rowsums <- apply(conmat, 1, sum)
-p <- rowsums / n
-# predicted cases per class
-colsums <- apply(conmat, 2, sum)
-q <- colsums / n
-expAccuracy <- sum(p*q)
-kappa <- (OA - expAccuracy) / (1 - expAccuracy)
-kappa
-#kappa -> -0.002011258
+#preditcor importance
+randomForest::importance(model_rf$finalModel) %>% 
+  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
+  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+          width = 350, height = 300)
 
-PA <- diag / colsums
-# User accuracy
-UA <- diag / rowsums
-outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
-outAcc
-
-#  producerAccuracy userAccuracy
-#1        0.2029718   0.25490573
-#2        0.1812901   0.11458937
-#3        0.1850900   0.06925741
-#4        0.2037417   0.32474028
-#5        0.1991607   0.22876080
-
+#mean decrease accuracy and mean decrease gini 
+randomForest::varImpPlot(model_rf$finalModel)
 
 ####WORKING ON AREA C
 #importing the shp file of area C
@@ -400,7 +366,7 @@ poly_area_C@data$id <- as.integer(factor(poly_area_C@data$id))
 setDT(poly_area_C@data)
 
 #rewriting brick_for_prediction so that it's not cropped on the area B
-brick_for_prediction <- brick(rst_for_prediction)
+brick_for_prediction <- brick(rst_lst)
 #only focusing on the area where the polygons are
 brick_for_prediction <-crop(brick_for_prediction, poly_area_C)
 
@@ -511,46 +477,25 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####EVALUATION OF THE MODEL 
-x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
+model_rf$times$everything   # total computation time
 
-y <- rbind(x)
-y <- data.frame(y)
-colnames(y) <- c('observed', 'predicted')
-conmat <- table(y)
-# change the name of the classes
-#colnames(conmat) <- classdf$classnames
-#rownames(conmat) <- classdf$classnames
+plot(model_rf) # tuning results
 
-n <- sum(conmat)
-# number of correctly classified cases per class
-diag <- diag(conmat)
-# Overall Accuracy
-OA <- sum(diag) / n
-OA
-#OA -> 0.2028805
+#confusion matrix and statistics
+cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
+                         dt_test$class)
+cm_rf
 
-rowsums <- apply(conmat, 1, sum)
-p <- rowsums / n
-# predicted cases per class
-colsums <- apply(conmat, 2, sum)
-q <- colsums / n
-expAccuracy <- sum(p*q)
-kappa <- (OA - expAccuracy) / (1 - expAccuracy)
-kappa
-#kappa -> 0.001445136
+#preditcor importance
+randomForest::importance(model_rf$finalModel) %>% 
+  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
+  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+          width = 350, height = 300)
 
-PA <- diag / colsums
-# User accuracy
-UA <- diag / rowsums
-outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
-outAcc
+#mean decrease accuracy and mean decrease gini 
+randomForest::varImpPlot(model_rf$finalModel)
 
-#  producerAccuracy userAccuracy
-#1        0.2106409   0.45150162
-#2        0.2021918   0.14909091
-#3        0.1897019   0.08983957
-#4        0.1918180   0.19449735
-#5        0.2038489   0.12052255
+
 
 ####WORKING ON AREA D
 #importing the shp file of area D
@@ -559,7 +504,7 @@ poly_area_D@data$id <- as.integer(factor(poly_area_D@data$id))
 setDT(poly_area_D@data)
 
 #rewriting brick_for_prediction so that it's not cropped on the area C
-brick_for_prediction <- brick(rst_for_prediction)
+brick_for_prediction <- brick(rst_lst)
 #only focusing on the area where the polygons are
 brick_for_prediction <-crop(brick_for_prediction, poly_area_D)
 
@@ -670,66 +615,61 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####EVALUATION OF THE MODEL 
-x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
+model_rf$times$everything   # total computation time
 
-y <- rbind(x)
-y <- data.frame(y)
-colnames(y) <- c('observed', 'predicted')
-conmat <- table(y)
-# change the name of the classes
-#colnames(conmat) <- classdf$classnames
-#rownames(conmat) <- classdf$classnames
+plot(model_rf) # tuning results
 
-n <- sum(conmat)
-# number of correctly classified cases per class
-diag <- diag(conmat)
-# Overall Accuracy
-OA <- sum(diag) / n
-OA
-#OA -> 0.2069662
+#confusion matrix and statistics
+cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
+                         dt_test$class)
+cm_rf
 
-rowsums <- apply(conmat, 1, sum)
-p <- rowsums / n
-# predicted cases per class
-colsums <- apply(conmat, 2, sum)
-q <- colsums / n
-expAccuracy <- sum(p*q)
-kappa <- (OA - expAccuracy) / (1 - expAccuracy)
-kappa
-#kappa ->  0.005699351
+#preditcor importance
+randomForest::importance(model_rf$finalModel) %>% 
+  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
+  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+          width = 350, height = 300)
 
-PA <- diag / colsums
-# User accuracy
-UA <- diag / rowsums
-outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
-outAcc
+#mean decrease accuracy and mean decrease gini 
+randomForest::varImpPlot(model_rf$finalModel)
 
-#  producerAccuracy userAccuracy
-#1        0.2099300   0.68691770
-#2        0.2049505   0.04035874
-#3        0.1976991   0.12788876
-#4        0.2158481   0.10335968
-#5        0.1837223   0.06371939
+
 
 
 ###############WORKING WITH SENTINEL2 DATASET 20m RESOLUTION
 #B2, B3, B4, B8 at 10m resolution
-#B5, B6, B7, B8A, B11, B12 at 20m resolution
-#B1, B9, B10 at 60m resolution
+#B1, B5, B6, B7, B8A, B11, B12 at 20m resolution
+#B9, B10 at 60m resolution
+
+#Path to tiff files
+data_path='C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_sx/GRANULE/L2A_T32TPS_A042919_20230910T101420/IMG_DATA/R20m'
+#Read the raster bands: B1, B2, B3, B4,B5, B6, B7, B8A, B11, B12:
+sentinel <- c(list.files(paste0(data_path), pattern = ".*B.*.jp2", full.names = TRUE),
+                       'C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_sx/GRANULE/L2A_T32TPS_A042919_20230910T101420/IMG_DATA/R10m/T32TPS_20230910T100601_B08_10m.jp2')
+#the dot means that you ONLY pick those specific names
+rst_lst <- lapply(sentinel, FUN = raster)
+
+#Reorganizing the bands in the right order
+b_08 <- rst_lst[[11]]
+b_08A <- rst_lst[[10]]
+b_11 <- rst_lst[[8]]
+b_12 <- rst_lst[[9]]
+
+rst_lst[[8]] <- b_08
+rst_lst[[9]] <- b_08A
+rst_lst[[10]] <- b_11 
+rst_lst[[11]] <- b_12
+
+bands_names <- c('B01', "B02","B03","B04",'B05', 'B06', 'B07', "B08","B8A","B11","B12")
+names(rst_lst) <- bands_names
+
 
 #Resampling bands so that they all have a 20m resolution
-rst_for_prediction <- vector(mode = "list", length = length(rst_lst))
-names(rst_for_prediction) <- names(rst_lst)
-for (b in c("B02", "B03", "B04", "B08")){
-    rst_for_prediction[[b]] <- raster::resample(x = rst_lst[[b]],
-                                                y = rst_lst$B05)}
-
-b_20m <- c("B05", "B06", "B07", "B8A", "B11", "B12")
-rst_for_prediction[b_20m] <- rst_lst[b_20m]
-
-brick_for_prediction <- brick(rst_for_prediction)
+rst_lst[["B08"]] <- raster::resample(x = rst_lst[["B08"]],
+                                                y = rst_lst$B05)
 
 
+brick_for_prediction <- brick(rst_lst)
 
 #####WORKING ON AREA A
 #importing the shp file of area A
