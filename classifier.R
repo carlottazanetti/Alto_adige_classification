@@ -1263,20 +1263,17 @@ area_A <- shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_
 #Resampling bands so that they all have a 10m resolution
 rst_for_prediction <- vector(mode = "list", length = length(rst_lst))
 names(rst_for_prediction) <- names(rst_lst)
-rst_for_prediction[['B08']] <- crop(rst_lst[['B08']],area_A)
+rst_for_prediction[['B08']] <- crop(rst_lst[['B08']],area_B)
 for (x in bands_names) {
      if (x == 'B08'){
-          cat(x, 'is already at 10m of resolution ')
+          print(paste0(x, 'is already at 10m of resolution '))
 }
      else{
-          cat('resampling ',x)
-          print('')
-          rst_for_prediction[[x]] <- crop(rst_lst[[x]],area_A)
+          print(paste0('resampling ',x))
+          rst_for_prediction[[x]] <- crop(rst_lst[[x]],area_B)
           rst_for_prediction[[x]] <- raster::resample(x = rst_for_prediction[[x]],
                                                 y = rst_for_prediction$B08)
 } }
-
-
 
 brick_for_prediction <- brick(rst_for_prediction)
 
@@ -1901,7 +1898,7 @@ randomForest::importance(model_rf$finalModel) %>%
 randomForest::varImpPlot(model_rf$finalModel)
 
 ######################LANDSAT8 DATASET########################
-#7 bands with a 30m resolution and 1 band (B10) in the IR with a 100 m resolution
+#30m resolution
 
 #Path to tiff files
 data_path='C:/Users/carlo/Desktop/tesi/alto_adige/landsat'
@@ -2033,47 +2030,23 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####EVALUATION OF THE MODEL 
-x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
+model_rf$times$everything   # total computation time
 
-y <- rbind(x)
-y <- data.frame(y)
-colnames(y) <- c('observed', 'predicted')
-conmat <- table(y)
-# change the name of the classes
-#colnames(conmat) <- classdf$classnames
-#rownames(conmat) <- classdf$classnames
+plot(model_rf) # tuning results
 
-n <- sum(conmat)
-# number of correctly classified cases per class
-diag <- diag(conmat)
-# Overall Accuracy
-OA <- sum(diag) / n
-OA
-#OA -> 0.2075203
+#confusion matrix and statistics
+cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
+                         dt_test$class)
+cm_rf
 
-rowsums <- apply(conmat, 1, sum)
-p <- rowsums / n
-# predicted cases per class
-colsums <- apply(conmat, 2, sum)
-q <- colsums / n
-expAccuracy <- sum(p*q)
-kappa <- (OA - expAccuracy) / (1 - expAccuracy)
-kappa
-#kappa -> 0.005528627
+#preditcor importance
+randomForest::importance(model_rf$finalModel) %>% 
+  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
+  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+          width = 350, height = 300)
 
-PA <- diag / colsums
-# User accuracy
-UA <- diag / rowsums
-outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
-outAcc
-
-#  producerAccuracy userAccuracy
-#1        0.2073695   0.68077295
-#2        0.2177243   0.03845411
-#3        0.2066906   0.13196034
-#4        0.2078969   0.10584615
-#5        0.2043081   0.06526272
-
+#mean decrease accuracy and mean decrease gini 
+randomForest::varImpPlot(model_rf$finalModel)
 
 
 ####WORKING ON AREA B
@@ -2191,6 +2164,26 @@ saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_
 predict_rf <- raster::predict(object = brick_for_prediction,
                               model = model_rf, type = 'raw')
 writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/landsat8/modello/","landsat_area_B_classification",".tiff"),overwrite=T )
+
+
+####EVALUATION OF THE MODEL 
+model_rf$times$everything   # total computation time
+
+plot(model_rf) # tuning results
+
+#confusion matrix and statistics
+cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
+                         dt_test$class)
+cm_rf
+
+#preditcor importance
+randomForest::importance(model_rf$finalModel) %>% 
+  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
+  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+          width = 350, height = 300)
+
+#mean decrease accuracy and mean decrease gini 
+randomForest::varImpPlot(model_rf$finalModel)
 
 
 
@@ -2312,6 +2305,27 @@ predict_rf <- raster::predict(object = brick_for_prediction,
 writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/landsat8/modello/","landsat_area_C_classification",".tiff"),overwrite=T )
 
 
+####EVALUATION OF THE MODEL 
+model_rf$times$everything   # total computation time
+
+plot(model_rf) # tuning results
+
+#confusion matrix and statistics
+cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
+                         dt_test$class)
+cm_rf
+
+#preditcor importance
+randomForest::importance(model_rf$finalModel) %>% 
+  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
+  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+          width = 350, height = 300)
+
+#mean decrease accuracy and mean decrease gini 
+randomForest::varImpPlot(model_rf$finalModel)
+
+
+
 
 ####WORKING ON AREA D
 #importing the shp file of area D
@@ -2429,6 +2443,25 @@ predict_rf <- raster::predict(object = brick_for_prediction,
                               model = model_rf, type = 'raw')
 writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/landsat8/modello/","landsat_area_D_classification",".tiff"),overwrite=T )
 
+
+####EVALUATION OF THE MODEL 
+model_rf$times$everything   # total computation time
+
+plot(model_rf) # tuning results
+
+#confusion matrix and statistics
+cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
+                         dt_test$class)
+cm_rf
+
+#preditcor importance
+randomForest::importance(model_rf$finalModel) %>% 
+  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
+  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+          width = 350, height = 300)
+
+#mean decrease accuracy and mean decrease gini 
+randomForest::varImpPlot(model_rf$finalModel)
 
 
 ###############WORKING WITH ENMAP DATASET
@@ -2560,6 +2593,26 @@ predict_rf <- raster::predict(object = brick_for_prediction,
 writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/enmap/modello/","enmap_area_A_classification",".tiff"),overwrite=T )
 
 
+####EVALUATION OF THE MODEL 
+model_rf$times$everything   # total computation time
+
+plot(model_rf) # tuning results
+
+#confusion matrix and statistics
+cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
+                         dt_test$class)
+cm_rf
+
+#preditcor importance
+randomForest::importance(model_rf$finalModel) %>% 
+  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
+  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+          width = 350, height = 300)
+
+#mean decrease accuracy and mean decrease gini 
+randomForest::varImpPlot(model_rf$finalModel)
+
+
 
 
 ####WORKING ON AREA B
@@ -2580,10 +2633,6 @@ brick_for_prediction <- brick(rst_lst)
 poly_area_B <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/poly_training_B32N.shp')
 poly_area_B@data$id <- as.integer(factor(poly_area_B@data$id))
 setDT(poly_area_B@data)
-
-#Cropping since in this case the area is slightly bigger than the polygons'area of interest
-brick_for_prediction <-crop(brick_for_prediction, poly_area_B)
-
 
 ptsamp1<-subset(poly_area_B, id == "1") #seleziono solo i poigoni con id=1
 ptsamp1_1 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=1 
@@ -2690,45 +2739,24 @@ predict_rf <- raster::predict(object = brick_for_prediction,
 writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_B/enmap/modello/","enmap_area_B_classification",".tiff"),overwrite=T )
 
 ####EVALUATION OF THE MODEL 
-x <- cbind(dt_test$class, as.integer(matrix(predict_rf)))
+model_rf$times$everything   # total computation time
 
-y <- rbind(x)
-y <- data.frame(y)
-colnames(y) <- c('observed', 'predicted')
-conmat <- table(y)
-# change the name of the classes
-#colnames(conmat) <- classdf$classnames
-#rownames(conmat) <- classdf$classnames
+plot(model_rf) # tuning results
 
-n <- sum(conmat) #number of cases
-diag <- diag(conmat) # number of correctly classified cases per class
-# Overall Accuracy
-OA <- sum(diag) / n
-OA
-#OA -> 0.1976157
+#confusion matrix and statistics
+cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
+                         dt_test$class)
+cm_rf
 
-rowsums <- apply(conmat, 1, sum) #sum of all the values of the rows (1 means rows and 2 means columns). It's a value for each column
-#So basically every column is the number of times that that specific class was predicted (either correctly or incorrectly)
-p <- rowsums / n # predicted cases per class
-colsums <- apply(conmat, 2, sum) #every row is the number of times a certain class was observed (either correctly or incorrectly predicted)
-q <- colsums / n
-expAccuracy <- sum(p*q)
-kappa <- (OA - expAccuracy) / (1 - expAccuracy)
-kappa
-#kappa -> 0.005528627
+#preditcor importance
+randomForest::importance(model_rf$finalModel) %>% 
+  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
+  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+          width = 350, height = 300)
 
-PA <- diag / colsums
-# User accuracy
-UA <- diag / rowsums
-outAcc <- data.frame(producerAccuracy = PA, userAccuracy = UA)
-outAcc
+#mean decrease accuracy and mean decrease gini 
+randomForest::varImpPlot(model_rf$finalModel)
 
-#  producerAccuracy userAccuracy
-#1        0.2017083   0.34368878
-#2        0.2093458   0.06726727
-#3        0.1949458   0.09600000
-#4        0.1871921   0.24880952
-#5        0.2012293   0.22212389
 
 
 
@@ -2749,15 +2777,6 @@ brick_for_prediction <- brick(rst_lst)
 poly_area_C <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/poly_training_C32N.shp')
 poly_area_C@data$id <- as.integer(factor(poly_area_C@data$id))
 setDT(poly_area_C@data)
-
-#setting the coordinates from m to km so that they match the extent of the sentinel image
-#poly_area_C <- sp::spTransform(poly_area_C,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
-
-#rewriting brick_for_prediction so that it's not cropped on the area B
-brick_for_prediction <- brick(rst_for_prediction)
-#only focusing on the area where the polygons are
-brick_for_prediction <-crop(brick_for_prediction, poly_area_C)
-
 
 ptsamp1<-subset(poly_area_C, id == "1") #seleziono solo i poigoni con id=1
 ptsamp1_1 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=1 
@@ -2863,6 +2882,25 @@ predict_rf <- raster::predict(object = brick_for_prediction,
                               model = model_rf, type = 'raw')
 writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_C/enmap/modello/","enmap_area_C_classification",".tiff"),overwrite=T )
 
+####EVALUATION OF THE MODEL 
+model_rf$times$everything   # total computation time
+
+plot(model_rf) # tuning results
+
+#confusion matrix and statistics
+cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
+                         dt_test$class)
+cm_rf
+
+#preditcor importance
+randomForest::importance(model_rf$finalModel) %>% 
+  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
+  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+          width = 350, height = 300)
+
+#mean decrease accuracy and mean decrease gini 
+randomForest::varImpPlot(model_rf$finalModel)
+
 
 
 ####WORKING ON AREA D
@@ -2882,15 +2920,6 @@ brick_for_prediction <- brick(rst_lst)
 poly_area_D <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/poly_training_D32N.shp')
 poly_area_D@data$id <- as.integer(factor(poly_area_D@data$id))
 setDT(poly_area_D@data)
-
-#setting the coordinates from m to km so that they match the extent of the sentinel image
-#poly_area_D <- sp::spTransform(poly_area_D,  sp::CRS("+proj=longlat +datum=WGS84 +units=km +no_defs"))
-
-#rewriting brick_for_prediction so that it's not cropped on the area C
-brick_for_prediction <- brick(rst_for_prediction)
-#only focusing on the area where the polygons are
-brick_for_prediction <-crop(brick_for_prediction, poly_area_D)
-
 
 ptsamp1<-subset(poly_area_D, id == "1") #seleziono solo i poigoni con id=1
 ptsamp1_1 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=1 
@@ -2996,6 +3025,24 @@ predict_rf <- raster::predict(object = brick_for_prediction,
                               model = model_rf, type = 'raw')
 writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_D/enmap/modello/","enmap_area_D_classification",".tiff"),overwrite=T )
 
+####EVALUATION OF THE MODEL 
+model_rf$times$everything   # total computation time
+
+plot(model_rf) # tuning results
+
+#confusion matrix and statistics
+cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
+                         dt_test$class)
+cm_rf
+
+#preditcor importance
+randomForest::importance(model_rf$finalModel) %>% 
+  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
+  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+          width = 350, height = 300)
+
+#mean decrease accuracy and mean decrease gini 
+randomForest::varImpPlot(model_rf$finalModel)
 
 
 
