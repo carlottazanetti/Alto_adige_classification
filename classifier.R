@@ -27,7 +27,7 @@ library(tidyr)
 library(maptools)
 
 
-############### WORKING WITH SENTINEL2 DATASET 10m RESOLUTION
+############### WORKING WITH SENTINEL2 DATASET 10m RESOLUTION  ##########################################
 #B2, B3, B4, B8 at 10m resolution
 #B1, B5, B6, B7, B8A, B11, B12 at 20m resolution
 #B9, B10 at 60m resolution
@@ -54,13 +54,16 @@ brick_for_prediction <- brick(rst_lst)
 #####WORKING ON AREA A
 #importing the shp file of area A
 poly_area_A <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/poly_training_A32N.shp')
+#Need to have a numeric id for each class 
 poly_area_A@data$id <- as.integer(factor(poly_area_A@data$id))
+#Use of @: extract the contents of a slot in a object with a formal (S4) class structure (object@name) 
 setDT(poly_area_A@data)
+#setDT converts lists (both named and unnamed) and data.frames to data.tables by reference. 
 
 #only focusing on the area where the polygons are
 brick_for_prediction <-crop(brick_for_prediction, poly_area_A)
 
-
+#Creating 750 random points for each id
 ptsamp1<-subset(poly_area_A, id == "1") #seleziono solo i poigoni con id=1
 ptsamp1_1 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=1, usando regular sampling
 ptsamp1_1$class <- over(ptsamp1_1, ptsamp1)$id #do il valore di id=1 ai punti random
@@ -87,7 +90,7 @@ ptsamp5_5$class <- over(ptsamp5_5, ptsamp5)$id #do il valore di id=5 ai punti ra
 saveRDS(ptsamp5_5, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/sentinel2/10m/punti_random/", file="_ptsamp5_A.rds"))
 
 
-#in quest parte prendo le informazioni dei pixel dove il punto random è caduto e lo salvo in un dataframe. 
+#Taking the infromation of the pixel where the random point landed and saving them in a dataframe
 dt1 <- brick_for_prediction %>%    #%>% takes the output of one function and passes it into another function as an argument, read it as 'and then'
   raster::extract(y = ptsamp1_1) %>% 
   as.data.table %>%   #Functions to check if an object is data.table, or coerce it if possible
@@ -114,15 +117,16 @@ dt5 <- brick_for_prediction %>%
   .[, id_cls := ptsamp5_5@data] # add the class names to each row
 
 
-#merge i due dataframe in un unio dataframe. 
+#Merging the 5 dataframes in a single dataframe
 dt<-rbind(dt1, dt2, dt3, dt4, dt5)
 names(dt)[names(dt) == 'id_cls'] <- 'class'
-dt<-dt %>% drop_na()
+dt<-dt %>% drop_na() #deletes the rows with null values
 dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd', 'e')) #The function factor is used to encode a vector as a factor 
 
 
 
-#inizio random forest
+#RANDOM FOREST
+#Splitting the data into the training dataset and the test dataset
 set.seed(321) #Since it's a pseudo random number generator, you need to choose the seed
 # A stratified random split of the data
 idx_train <- createDataPartition(dt$class,    #A series of test/training partitions are created
@@ -130,15 +134,16 @@ idx_train <- createDataPartition(dt$class,    #A series of test/training partiti
                                  list = FALSE) #if it's false then you don't want the result to be a list
 
 
-dt_train <- dt[idx_train]
-dt_test <- dt[-idx_train]
+dt_train <- dt[idx_train] #takes the index idx_train
+dt_test <- dt[-idx_train] #takes the index that is not idx_train
 
-
-# create cross-validation folds (splits the data into n random groups)
+#The training dataset is used for carrying cross-validation and grid search for model tuning. 
+#Once the optimal/best parameters were found a final model is fit to the entire training dataset using those findings.
+#Creating cross-validation folds (splits the data into n random groups)
 n_folds <- 10
 set.seed(321)
 folds <- createFolds(1:nrow(dt_train), k = n_folds)
-# Set the seed at each resampling iteration. Useful when running CV in parallel.
+# Set the seed at each resampling iteration. Useful when running Cross Validation in parallel.
 seeds <- vector(mode = "list", length = n_folds + 1) # +1 for the final model. It's an empty vector?
 for(i in 1:n_folds) seeds[[i]] <- sample.int(1000, n_folds) #It gives you a random sample of n_folds (10) numbers from 1 to 1000
 seeds[n_folds + 1] <- sample.int(1000, 1) # seed for the final model
