@@ -139,12 +139,15 @@ dt_test <- dt[-idx_train] #takes the index that is not idx_train
 
 #The training dataset is used for carrying cross-validation and grid search for model tuning. 
 #Once the optimal/best parameters were found a final model is fit to the entire training dataset using those findings.
-#Creating cross-validation folds (splits the data into n random groups)
+#Creating cross-validation folds (splits the data into n random groups) and then cross validation works on them in parallel
+
+#Why using cross validation? Let's say we have 10 folds. Instead of deciding which of these folds
+#to use to estimate the tuning parameter, we try all the different cominations (using a different fold each time)
 n_folds <- 10
 set.seed(321)
 folds <- createFolds(1:nrow(dt_train), k = n_folds)
 # Set the seed at each resampling iteration. Useful when running Cross Validation in parallel.
-seeds <- vector(mode = "list", length = n_folds + 1) # +1 for the final model. It's an empty vector?
+seeds <- vector(mode = "list", length = n_folds + 1) # +1 for the final model. It's an empty vector
 for(i in 1:n_folds) seeds[[i]] <- sample.int(1000, n_folds) #It gives you a random sample of n_folds (10) numbers from 1 to 1000
 seeds[n_folds + 1] <- sample.int(1000, 1) # seed for the final model
 
@@ -178,20 +181,33 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 ####EVALUATION OF THE MODEL 
 model_rf$times$everything   # total computation time
 
-plot(model_rf) # tuning results
+## tuning results: optimisation of tuning was done via CV so here you can see the different predictors and how well they performed
+#the one with the best performance was the one saved in the final model
+plot(model_rf) 
 
-#confusion matrix and statistics
+#confusion matrix and statistics: the rows are what the algorithm has predicted, and the columns correspond to the known truth. The diagonal is where the model classified correctly
+#sensitivity = correct classification of class i/(correct classification of class i + cases where it was classified as something else but it was actually class i)
+#sensitivity: percentage of the i-th class was correctly predicted (true positives)
+#specificity = cases were it was correctly classified as something different than the i-th class / (cases were it was correctly classified as something different than the i-th class + cases predicted to be class i but were actually somthing else)
+#specificity: percentage of cases that were correctly identified as a different class than i (true negatives)
+#accuracy = True negatives + true positives/total
+#accuracy: how often is the classfier correct
+#kappa statistics: he kappa statistic is used not only to evaluate a single classifier, but also to evaluate classifiers amongst themselves. 
+#In addition, it takes into account random chance (agreement with a random classifier), which generally means it is less misleading than simply using accuracy as a metric
 cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
                          dt_test$class)
 cm_rf
 
-#preditcor importance
+#preditcor importance: a higher value means that that band was more important in determing the classification
 randomForest::importance(model_rf$finalModel) %>% 
   .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
   plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
           width = 350, height = 300)
 
 #mean decrease accuracy and mean decrease gini 
+#The Gini Index or Impurity measures the probability for a random instance being misclassified when chosen randomly. 
+#The lower the Gini Index, the lower the likelihood of misclassification.
+#gini = 1 - sum(Pi^2) Where Pi denotes the probability of an element being classified for a distinct class.
 randomForest::varImpPlot(model_rf$finalModel)
 
 
