@@ -118,10 +118,10 @@ dt5 <- brick_for_prediction %>%
 
 
 #Merging the 5 dataframes in a single dataframe
-dt<-rbind(dt1, dt2, dt3, dt4, dt5)
-names(dt)[names(dt) == 'id_cls'] <- 'class'
-dt<-dt %>% drop_na() #deletes the rows with null values
-dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd', 'e')) #The function factor is used to encode a vector as a factor 
+dt_s10A<-rbind(dt1, dt2, dt3, dt4, dt5)
+names(dt_s10A)[names(dt_s10A) == 'id_cls'] <- 'class'
+dt_s10A<-dt_s10A %>% drop_na() #deletes the rows with null values
+dt_s10A$class <- factor(dt_s10A$class, labels=c('forest','urban', 'mountain', 'vaia', 'pasture')) #The function factor is used to encode a vector as a factor 
 
 
 
@@ -179,8 +179,6 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####EVALUATION OF THE MODEL 
-model_rf$times$everything   # total computation time
-
 ## tuning results: optimisation of tuning was done via CV so here you can see the different predictors and how well they performed
 #the one with the best performance was the one saved in the final model
 plot(model_rf) 
@@ -194,13 +192,13 @@ plot(model_rf)
 #accuracy: how often is the classfier correct
 #kappa statistics: he kappa statistic is used not only to evaluate a single classifier, but also to evaluate classifiers amongst themselves. 
 #In addition, it takes into account random chance (agreement with a random classifier), which generally means it is less misleading than simply using accuracy as a metric
-cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
+cm_s10A <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
                          dt_test$class)
-cm_rf
+cm_s10A
 
 #preditcor importance: a higher value means that that band was more important in determing the classification
-randomForest::importance(model_rf$finalModel) %>% 
-  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
+caret::varImp(model_rf)$importance %>%
+  as.matrix %>% 
   plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
           width = 350, height = 300)
 
@@ -343,18 +341,17 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####EVALUATION OF THE MODEL 
-model_rf$times$everything   # total computation time
-
 plot(model_rf) # tuning results
 
 #confusion matrix and statistics
-cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
+cm_s10B <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
                          dt_test$class)
-cm_rf
+cm_s10B
+prova <- confusionMatrix(cm_s10A,cm_s10B)
 
 #preditcor importance
-randomForest::importance(model_rf$finalModel) %>% 
-  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
+caret::varImp(model_rf)$importance %>%
+  as.matrix %>% 
   plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
           width = 350, height = 300)
 
