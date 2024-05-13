@@ -1420,9 +1420,9 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 plot(model_rf) # tuning results
 
 #confusion matrix and statistics
-test_sr10A <- predict(model_rf, newdata = dt_test)
-class_sr10A <- dt_test$class
-cm <- confusionMatrix(data = test_sr10A, class_sr10A)
+test_s10rA <- predict(model_rf, newdata = dt_test)
+class_s10rA <- dt_test$class
+cm <- confusionMatrix(data = test_s10rA, class_s10rA)
 cm
 
 #preditcor importance
@@ -1480,8 +1480,6 @@ for (x in bands_names) {
           rst_for_prediction[[x]] <- raster::resample(x = rst_for_prediction[[x]],
                                                 y = rst_for_prediction$B08)
 } }
-
-
 
 brick_for_prediction <- brick(rst_for_prediction)
 
@@ -1703,7 +1701,7 @@ dt5 <- brick_for_prediction %>%
 dt<-rbind(dt1, dt2, dt3, dt4, dt5)
 names(dt)[names(dt) == 'id_cls'] <- 'class'
 dt<-dt %>% drop_na()
-dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd', 'e'))
+dt$class <- factor(dt$class, labels=c('forest','urban', 'mountain', 'vaia', 'pasture'))
 
 
 
@@ -1752,20 +1750,20 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####EVALUATION OF THE MODEL 
-model_rf$times$everything   # total computation time
-
 plot(model_rf) # tuning results
 
 #confusion matrix and statistics
-cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
-                         dt_test$class)
-cm_rf
+test_s10rC <- predict(model_rf, newdata = dt_test)
+class_s10rC <- dt_test$class
+cm <- confusionMatrix(data = test_s10rC, class_s10rC)
+cm
 
 #preditcor importance
-randomForest::importance(model_rf$finalModel) %>% 
-  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
-  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
-          width = 350, height = 300)
+caret::varImp(model_rf)$importance %>%
+     as.matrix %>% 
+     plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+             width = 350, height = 300)
+
 
 #mean decrease accuracy and mean decrease gini 
 randomForest::varImpPlot(model_rf$finalModel)
@@ -1856,7 +1854,7 @@ dt5 <- brick_for_prediction %>%
 dt<-rbind(dt1, dt2, dt3, dt4, dt5)
 names(dt)[names(dt) == 'id_cls'] <- 'class'
 dt<-dt %>% drop_na()
-dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd', 'e'))
+dt$class <- factor(dt$class, labels=c('forest','urban', 'mountain', 'vaia', 'pasture'))
 
 
 
@@ -1907,23 +1905,29 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####EVALUATION OF THE MODEL 
-model_rf$times$everything   # total computation time
-
 plot(model_rf) # tuning results
 
 #confusion matrix and statistics
-cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
-                         dt_test$class)
-cm_rf
+test_s10rD <- predict(model_rf, newdata = dt_test)
+class_s10rD <- dt_test$class
+cm <- confusionMatrix(data = test_s10rD, class_s10rD)
+cm
 
 #preditcor importance
-randomForest::importance(model_rf$finalModel) %>% 
-  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
-  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
-          width = 350, height = 300)
+caret::varImp(model_rf)$importance %>%
+     as.matrix %>% 
+     plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+             width = 350, height = 300)
 
 #mean decrease accuracy and mean decrease gini 
 randomForest::varImpPlot(model_rf$finalModel)
+
+
+#SETINEL 10m resampled ACCURACY
+test_s10r <- c(test_s10rA, test_s10rB, test_s10rC, test_s10rD)
+class_s10r <- c(class_s10rA, class_s10rB, class_s10rC, class_s10rD)
+cm_s10r  <- confusionMatrix(data = test_s10r, class_s10r)
+cm_s10r
 
 ######################LANDSAT8 DATASET########################
 #30m resolution
@@ -2009,7 +2013,7 @@ dt5 <- brick_for_prediction %>%
 dt<-rbind(dt1, dt2, dt3, dt4, dt5)
 names(dt)[names(dt) == 'id_cls'] <- 'class'
 dt<-dt %>% drop_na() #drops rows containing missing values
-dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd', 'e'))
+dt$class <- factor(dt$class, labels=c('forest','urban', 'mountain', 'vaia', 'pasture'))
 
 
 
@@ -2058,20 +2062,19 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####EVALUATION OF THE MODEL 
-model_rf$times$everything   # total computation time
-
 plot(model_rf) # tuning results
 
 #confusion matrix and statistics
-cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
-                         dt_test$class)
-cm_rf
+test_l30A <- predict(model_rf, newdata = dt_test)
+class_l30A <- dt_test$class
+cm <- confusionMatrix(data = test_l30A, class_l30A)
+cm
 
 #preditcor importance
-randomForest::importance(model_rf$finalModel) %>% 
-  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
-  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
-          width = 350, height = 300)
+caret::varImp(model_rf)$importance %>%
+     as.matrix %>% 
+     plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+             width = 350, height = 300)
 
 #mean decrease accuracy and mean decrease gini 
 randomForest::varImpPlot(model_rf$finalModel)
@@ -2146,7 +2149,7 @@ dt5 <- brick_for_prediction %>%
 dt<-rbind(dt1, dt2, dt3, dt4, dt5)
 names(dt)[names(dt) == 'id_cls'] <- 'class'
 dt<-dt %>% drop_na()
-dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd', 'e'))
+dt$class <- factor(dt$class, labels=c('forest','urban', 'mountain', 'vaia', 'pasture'))
 
 
 
@@ -2195,20 +2198,19 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####EVALUATION OF THE MODEL 
-model_rf$times$everything   # total computation time
-
 plot(model_rf) # tuning results
 
 #confusion matrix and statistics
-cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
-                         dt_test$class)
-cm_rf
+test_l30B <- predict(model_rf, newdata = dt_test)
+class_l30B <- dt_test$class
+cm <- confusionMatrix(data = test_l30B, class_l30B)
+cm
 
 #preditcor importance
-randomForest::importance(model_rf$finalModel) %>% 
-  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
-  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
-          width = 350, height = 300)
+caret::varImp(model_rf)$importance %>%
+     as.matrix %>% 
+     plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+             width = 350, height = 300)
 
 #mean decrease accuracy and mean decrease gini 
 randomForest::varImpPlot(model_rf$finalModel)
@@ -2285,7 +2287,7 @@ dt5 <- brick_for_prediction %>%
 dt<-rbind(dt1, dt2, dt3, dt4, dt5)
 names(dt)[names(dt) == 'id_cls'] <- 'class'
 dt<-dt %>% drop_na()
-dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd', 'e'))
+dt$class <- factor(dt$class, labels=c('forest','urban', 'mountain', 'vaia', 'pasture'))
 
 
 
@@ -2334,20 +2336,19 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####EVALUATION OF THE MODEL 
-model_rf$times$everything   # total computation time
-
 plot(model_rf) # tuning results
 
 #confusion matrix and statistics
-cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
-                         dt_test$class)
-cm_rf
+test_l30C <- predict(model_rf, newdata = dt_test)
+class_l30C <- dt_test$class
+cm <- confusionMatrix(data = test_l30C, class_l30C)
+cm
 
 #preditcor importance
-randomForest::importance(model_rf$finalModel) %>% 
-  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
-  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
-          width = 350, height = 300)
+caret::varImp(model_rf)$importance %>%
+     as.matrix %>% 
+     plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+             width = 350, height = 300)
 
 #mean decrease accuracy and mean decrease gini 
 randomForest::varImpPlot(model_rf$finalModel)
@@ -2424,7 +2425,7 @@ dt5 <- brick_for_prediction %>%
 dt<-rbind(dt1, dt2, dt3, dt4, dt5)
 names(dt)[names(dt) == 'id_cls'] <- 'class'
 dt<-dt %>% drop_na()
-dt$class <- factor(dt$class, labels=c('a','b', 'c', 'd', 'e'))
+dt$class <- factor(dt$class, labels=c('forest','urban', 'mountain', 'vaia', 'pasture'))
 
 
 
@@ -2473,23 +2474,28 @@ writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_s
 
 
 ####EVALUATION OF THE MODEL 
-model_rf$times$everything   # total computation time
-
 plot(model_rf) # tuning results
 
 #confusion matrix and statistics
-cm_rf <- confusionMatrix(data = predict(model_rf, newdata = dt_test),
-                         dt_test$class)
-cm_rf
+test_l30D <- predict(model_rf, newdata = dt_test)
+class_l30D <- dt_test$class
+cm <- confusionMatrix(data = test_l30D, class_l30D)
+cm
 
 #preditcor importance
-randomForest::importance(model_rf$finalModel) %>% 
-  .[, - which(colnames(.) %in% c("MeanDecreaseAccuracy", "MeanDecreaseGini"))] %>% 
-  plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
-          width = 350, height = 300)
+caret::varImp(model_rf)$importance %>%
+     as.matrix %>% 
+     plot_ly(x = colnames(.), y = rownames(.), z = ., type = "heatmap",
+             width = 350, height = 300)
 
 #mean decrease accuracy and mean decrease gini 
 randomForest::varImpPlot(model_rf$finalModel)
+
+#LANDSAT 30m ACCURACY
+test_l30 <- c(test_l30A, test_l30B, test_l30C, test_l30D)
+class_l30 <- c(class_l30A, class_l30B, class_l30C, class_l30D)
+cm_l30  <- confusionMatrix(data = test_l30, class_l30)
+cm_l30
 
 
 ###############WORKING WITH ENMAP DATASET
