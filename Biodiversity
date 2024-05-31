@@ -2,14 +2,27 @@ library(RStoolbox)
 library(raster)
 
 #importing Enmap image
-rst_lst <- stack('C:/Users/carlo/Desktop/tesi/alto_adige/enmap/dataset/ENMAP01/ENMAP01-____L2A-DT0000041009_20230909T102950Z_001_V010303_20230910T054452Z-SPECTRAL_IMAGE.tif')
+rst_lst <- stack('C:/Users/carlo/Desktop/tesi/alto_adige/enmap/dataset/ENMAP01/ENMAP01-____L2A-DT0000041009_20230909T102950Z_001_V010303_20230910T054452Z-SPECTRAL_IMAGE.TIF')
 cropped_area <-shapefile('C:/Users/carlo/Desktop/tesi/biodiversity/crop.shp')
 enmap <-crop(rst_lst, extent(cropped_area))
 
 names(enmap) <- as.character(1:224)
 
 #dropping the layers with missing values
-enmap <- dropLayer(enmap, c(131:135))
+enmap <- enmap[-c(131:135)]
+
+enmap <- brick(enmap)
+
+#Function to check for NA or Inf values in a layer
+is_valid_layer <- function(layer) {
+  return(!any(is.na(values(layer))) && !any(is.infinite(values(layer))))
+}
+
+# Apply the function to all layers and create a logical vector
+valid_layers <- sapply(1:nlayers(enmap), function(i) is_valid_layer(enmap[[i]]))
+
+# Subset the rasterbrick to keep only valid layers
+enmap <- enmap[[which(valid_layers)]]
 
 enmap_pca <- rasterPCA(enmap)
 
