@@ -46,7 +46,44 @@ for (i in seq_along(circles)) {
 print(enmap_rao_indices)
 
 #CALCULATING RAO INDEX ON SENTINEL10M NDVI
-#here all the circles are in Sentinelsx, except for circles with ID 23 and 22 that are on sentineldx
+#here all the circles are in Sentinel_sx, except for circles with ID 23 and 22 that are on sentinel_dx
+b8_sx <- stack("C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_sx/GRANULE/L2A_T32TPS_A042919_20230910T101420/IMG_DATA/R10m/T32TPS_20230910T100601_B08_10m.jp2")
+b8_sx <-crop(b8_sx, extent(cropped_area))
+b4_sx <-  stack("C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_sx/GRANULE/L2A_T32TPS_A042919_20230910T101420/IMG_DATA/R10m/T32TPS_20230910T100601_B04_10m.jp2")
+b4_sx <-crop(b4_sx, extent(cropped_area))
+
+b8_dx <- stack("C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_dx/GRANULE/L2A_T32TQS_A042919_20230910T101420/IMG_DATA/R10m/T32TQS_20230910T100601_B08_10m.jp2")
+b8_dx <-crop(b8_dx, extent(cropped_area))
+b4_dx <-  stack("C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_dx/GRANULE/L2A_T32TQS_A042919_20230910T101420/IMG_DATA/R10m/T32TQS_20230910T100601_B04_10m.jp2")
+b4_dx <-crop(b4_dx, extent(cropped_area))
+
+ndvi_sx <-(b8_sx-b4_sx)/(b8_sx+b4_sx)
+ndvi_dx <-(b8_dx-b4_dx)/(b8_dx+b4_dx)
+
+
+sentinel_rao_indices <- numeric(length(circles))
+# Iterate over each circle
+for (i in seq_along(circles)) {
+ # Extract the polygon representing the current circle
+  circle_polygon <- circles[i, ]
+if (i == 22 | i==23) {
+   # Calculate Rao index for the current circle
+  rao_index <- mpaRaoAreaS(ndvi_dx, circle_polygon)
+} else {
+  rao_index <- mpaRaoAreaS(ndvi_sx, circle_polygon)
+}  
+  # Store the Rao index in the vector
+  sentinel_rao_indices[i] <- rao_index
+}
+
+
+
+
+
+
+
+
+
 
 
 
