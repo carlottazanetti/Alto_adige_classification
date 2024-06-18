@@ -37,6 +37,7 @@ library(maptools)
 data_path='C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_sx/GRANULE/L2A_T32TPS_A042919_20230910T101420/IMG_DATA/R10m'
 #Read the raster bands: B2, B3, B4, B8:
 sentinel <- list.files(paste0(data_path), pattern = ".*B.*.jp2", full.names = TRUE)
+#list.files() Lists all files matching the pattern in the directory.
 #the dot means that you ONLY pick those specific names
 rst_lst <- lapply(sentinel, FUN = raster)
 
@@ -47,6 +48,7 @@ names(rst_lst) <- bands_names
 #Visualize the image in Natural Color (R = Red, G = Green, B = Blue).
 #suppressWarnings({viewRGB(brick(rst_lst[1:3]), r = 3, g = 2, b = 1)})
 
+#Combine the raster layers into a single brick for further processing
 brick_for_prediction <- brick(rst_lst)
 
 
@@ -54,11 +56,11 @@ brick_for_prediction <- brick(rst_lst)
 #####WORKING ON AREA A
 #importing the shp file of area A
 poly_area_A <-shapefile('C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/poly_training_A32N.shp')
-#Need to have a numeric id for each class 
+#Need to have a numeric id for each class - converting class labels to numeric IDs
 poly_area_A@data$id <- as.integer(factor(poly_area_A@data$id))
 #Use of @: extract the contents of a slot in a object with a formal (S4) class structure (object@name) 
-setDT(poly_area_A@data)
-#setDT converts lists (both named and unnamed) and data.frames to data.tables by reference. 
+#Converts data frame to data table for efficient processing
+setDT(poly_area_A@data). 
 
 #only focusing on the area where the polygons are
 brick_for_prediction <-crop(brick_for_prediction, poly_area_A)
@@ -66,7 +68,9 @@ brick_for_prediction <-crop(brick_for_prediction, poly_area_A)
 #Creating 750 random points for each id
 ptsamp1<-subset(poly_area_A, id == "1") #seleziono solo i poigoni con id=1
 ptsamp1_1 <- spsample(ptsamp1, 750, type='regular') # lancio 750 punti a caso nei poligoni con id=1, usando regular sampling
-ptsamp1_1$class <- over(ptsamp1_1, ptsamp1)$id #do il valore di id=1 ai punti random
+#spsample: Generates random points within the polygons
+ptsamp1_1$class <- over(ptsamp1_1, ptsamp1)$id
+#over: Associates each random point with the class ID.
 saveRDS(ptsamp1_1, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/sentinel2/10m/punti_random/", file="_ptsamp1_A.rds"))
 
 ptsamp2<-subset(poly_area_A, id == "2") #seleziono solo i poigoni con id=2
@@ -93,6 +97,7 @@ saveRDS(ptsamp5_5, file=paste0 ("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_
 #Taking the infromation of the pixel where the random point landed and saving them in a dataframe
 dt1 <- brick_for_prediction %>%    #%>% takes the output of one function and passes it into another function as an argument, read it as 'and then'
   raster::extract(y = ptsamp1_1) %>% 
+#extract: Retrieves the raster values at the locations of the random points.
   as.data.table %>%   #Functions to check if an object is data.table, or coerce it if possible
   .[, id_cls := ptsamp1_1@data] # add the class names to each row
 
@@ -119,15 +124,18 @@ dt5 <- brick_for_prediction %>%
 
 #Merging the 5 dataframes in a single dataframe
 dt<-rbind(dt1, dt2, dt3, dt4, dt5)
+#rbind: Combines data tables by rows
 names(dt)[names(dt) == 'id_cls'] <- 'class'
 dt<-dt %>% drop_na() #deletes the rows with null values
-dt$class <- factor(dt$class, labels=c('forest','urban', 'mountain', 'vaia', 'pasture')) #The function factor is used to encode a vector as a factor 
-
+dt$class <- factor(dt$class, labels=c('forest','urban', 'mountain', 'vaia', 'pasture'))  
+#factor: Converts the class column to a factor with meaningful labels
 
 
 #RANDOM FOREST
 #Splitting the data into the training dataset and the test dataset
 set.seed(321) #Since it's a pseudo random number generator, you need to choose the seed
+#set.seed: Sets the seed for reproducibility.
+
 # A stratified random split of the data
 idx_train <- createDataPartition(dt$class,    #A series of test/training partitions are created
                                  p = 0.7, # percentage of data as training
@@ -152,27 +160,38 @@ for(i in 1:n_folds) seeds[[i]] <- sample.int(1000, n_folds) #It gives you a rand
 seeds[n_folds + 1] <- sample.int(1000, 1) # seed for the final model
 
 
-ctrl <- trainControl(summaryFunction = multiClassSummary,  #Control the computational nuances of the train function
-                     method = "cv",
-                     number = n_folds, #number of folds
-                     search = "grid", #describing how the tuning parameter grid is determined
-                     classProbs = TRUE, #should class probabilities be computed for classification models (along with predicted values) in each resample?
-                                       #not implemented for SVM; will just get a warning. 
+#specifying how the training should be controlled and validated
+ctrl <- trainControl(summaryFunction = multiClassSummary,  #This specifies the function used to summarize the performance 
+                                                           #of the model during cross-validation. multiClassSummary is used 
+                                                           #to handle multi-class classification problems, providing metrics 
+                                                           #like accuracy, Kappa, etc.
+                     method = "cv", #specifies the resampling method, in this case it's cross validation
+                     number = n_folds, #number of folds to be used in cross validation
+                     search = "grid", #This specifies that a grid search is used to tune the model parameters. 
+                                      #Grid search involves searching over a specified set of hyperparameters.
+                     classProbs = TRUE, #should class probabilities be computed for classification models (along with predicted values) in each resampl
                      savePredictions = TRUE,
                      index = folds, #a list with elements for each resampling iteration. 
                                     #Each list element is a vector of integers corresponding to the rows used for training at that iteration.
-                     seeds = seeds)
+                     seeds = seeds)#This specifies the seeds for each resampling iteration to ensure reproducibility. 
+                                   #Each element in the seeds list is a vector of integers used to set the seed at each resampling iteration.
 
 #This function sets up a grid of tuning parameters for a number of classification and regression routines
-model_rf <- caret::train(class ~ . , method = "rf", data = dt_train, #neural network o vector machine
-                                                  importance = TRUE,
-                                                  tuneGrid = data.frame(mtry = c(2, 3, 4, 5, 8)),
-                                                  trControl = ctrl)
+model_rf <- caret::train(class ~ . , #This is the formula for the model. 
+                                     #It specifies that we want to predict the class variable using all other variables in the dt_train dataset.
+                         method = "rf", #stands for Random Forest
+                         data = dt_train, 
+                         importance = TRUE, #This parameter specifies that the function should calculate the importance of each variable (feature). 
+                                            #Variable importance is useful for understanding which features contribute most to the prediction.
+                         tuneGrid = data.frame(mtry = c(2, 3, 4, 5, 8)), #table of tuning parameters
+                                            #mtry: This is the only tuning parameter for the Random Forest algorithm. 
+                                            #It stands for the number of variables (features) randomly selected at each split in the tree
+                         trControl = ctrl) #specifies how the training should be controlled and validated
   
 #saving the model
 saveRDS(model_rf, file = paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/sentinel2/10m/modello/","model_rf_10m","area_A",".rds")) 
 
-#predict values based on the input data
+#predict: Applies the trained model to the raster data to predict classes.
 predict_rf <- raster::predict(object = brick_for_prediction,
                               model = model_rf, type = 'raw')
 writeRaster(predict_rf, paste0("C:/Users/carlo/Desktop/tesi/alto_adige/aree_di_studio/area_A/sentinel2/10m/modello/","sentinel_10m_area_A_classification",".tiff"),overwrite=T )
