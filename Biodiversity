@@ -36,8 +36,8 @@ for (i in seq_along(circles)) {
   circle_polygon <- circles[i, ]
   
   # Calculate Rao index for the current circle
-  rao_index <- mpaRaoAreaS(PC1_raster_layercircle_polygon)
-  
+  rao_index <- mpaRaoAreaS(PC1_raster_layer, circle_polygon)
+
   # Store the Rao index in the vector
   enmap_rao_indices[i] <- rao_index
 }
