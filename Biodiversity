@@ -4,6 +4,17 @@ library(rasterdiv)
 library(sp)
 library(terra)
 
+#INITIALIZING CIRCLES
+#Importing the areas where I want to calculate the pc
+cricles <- shapefile('C:/Users/carlo/Desktop/tesi/biodiversity/cerchi/circles.shp')
+
+# Removing the points where I don't have the data
+labels_to_remove <- c("GS0005", "GS0006", "GS0016","GS0017","GS0018", "GS0021", "GS0023")
+
+# Subset the shapefile to exclude these labels
+circles_filtered <- circles[!(circles@data[["PUNTO"]] %in% labels_to_remove), ]
+
+
 #CALCULATING RAO INDEX ON ENMAP'S PC1
 #importing Enmap image
 rst_lst <- stack('C:/Users/carlo/Desktop/tesi/alto_adige/enmap/dataset/ENMAP01/ENMAP01-____L2A-DT0000041009_20230909T102950Z_001_V010303_20230910T054452Z-SPECTRAL_IMAGE.TIF')
@@ -26,19 +37,12 @@ plot(enmap_pca$map[[1]], main = "PC1")
 
 #Calculating Rao index on the PC1
 PC1_raster_layer <- enmap_pca$map[[1]] 
-cricles <- shapefile('C:/Users/carlo/Desktop/tesi/biodiversity/cerchi/circles.shp')
 
-# Removing the points where I don't have the data
-labels_to_remove <- c("GS0005", "GS0006", "GS0016","GS0017","GS0018", "GS0021", "GS0023")
-
-# Subset the shapefile to exclude these labels
-circles_filtered <- circles[!(circles@data[["PUNTO"]] %in% labels_to_remove), ]
-
-# Convert SpatialPolygonsDataFrame to SpatVector (for mask function)
+# Convert SpatialPolygonsDataFrame to SpatVector (for mask function in Enmap)
 circles_vect <- vect(circles_filtered)
 
 # Initialize a list to store the centroids
-centroids_list <- list()
+centroids_list <- list() 
 
 # Initialize a vector to store Rao indices for each circle
 enmap_rao_indices <- numeric(length(circles_vect))
@@ -49,12 +53,14 @@ for (i in seq_along(circles_vect)) {
   circle_polygon <- circles_vect[i]
 
   # Calculate centroid of the circle
-  centroid <- centroids(circle_polygon)
+  centroid <- centroids(circles_vect[i])
   centroids_list[[i]] <- centroid
 
-  # Crop and mask the raster with the polygon
-  masked_raster <- mask(PC1_raster_layer, circle_polygon)
-  mat_s <- values(masked_raster)
+  # Use exact_extract to get the values of PC1_raster_layer within the circle polygon
+  #extracted_values <- exact_extract(PC1_raster_layer, circle_polygon)
+  mask1 <- mask(PC1_raster_layer, circle_polygon)
+
+  mat_s <- values(mask1)
   mat_s <- mat_s[!is.na(mat_s)]
 
   # Rao index calculation
@@ -89,8 +95,9 @@ plot(biodiversity_enmap$Rao_Index, biodiversity_enmap$Shannon_Index, xlab = "Rao
 plot(biodiversity_enmap$Rao_Index, biodiversity_enmap$Species_Richness, xlab = "Rao Index", ylab = "Species Richness",
      main = "EnMAP Rao Index vs Species Richness" )
 
+
 #CALCULATING RAO INDEX ON SENTINEL10M NDVI
-#here all the circles are in Sentinel_sx, except for circles with ID 23 and 22 that are on sentinel_dx
+#here all the circles are in Sentinel_sx, except for circles GS0020 and GS0022 that are on sentinel_dx
 b8_sx <- stack("C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_sx/GRANULE/L2A_T32TPS_A042919_20230910T101420/IMG_DATA/R10m/T32TPS_20230910T100601_B08_10m.jp2")
 b8_sx <-crop(b8_sx, extent(cropped_area))
 b4_sx <-  stack("C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_sx/GRANULE/L2A_T32TPS_A042919_20230910T101420/IMG_DATA/R10m/T32TPS_20230910T100601_B04_10m.jp2")
@@ -104,19 +111,16 @@ b4_dx <-crop(b4_dx, extent(cropped_area))
 ndvi_sx <-(b8_sx-b4_sx)/(b8_sx+b4_sx)
 ndvi_dx <-(b8_dx-b4_dx)/(b8_dx+b4_dx)
 
+sentinel_rao_indices <- numeric(length(circles_vect))
 
-sentinel_rao_indices <- numeric(length(circles))
-# Iterate over each circle
+# Iterate over each circle (here we need the shapefile, not the vector)
 for (i in seq_along(circles_vect)) {
  # Extract the polygon representing the current circle
-  circle_polygon <- circles_vect[i, ]
-  # Calculate centroid of the circle
-  centroid <- centroids(circle_polygon)
-  centroids_list[[i]] <- centroid
-if (i == 22 | i==23) {
-   # Calculate Rao index for the current circle
+  circle_polygon <- circles_filtered[i, ]
+if (circles_filtered@data[["PUNTO"]][i] == "GS0020" | circles_filtered@data[["PUNTO"]][i] == "GS0022") {
+  # Calculate Rao index for the current circle
   # Crop and mask the raster with the polygon
-  masked_raster <- mask(ndvi_dx, circle_polygon)
+  masked_raster <- crop(ndvi_dx, circle_polygon)
   mat_s <- values(masked_raster)
   mat_s <- mat_s[!is.na(mat_s)]
 
@@ -128,10 +132,11 @@ if (i == 22 | i==23) {
 
   # Store the Rao index in the vector
   sentinel_rao_indices[i] <- rao_index
+
 } else {
   # Calculate Rao index for the current circle
   # Crop and mask the raster with the polygon
-  masked_raster <- mask(ndvi_sx, circle_polygon)
+  masked_raster <- crop(ndvi_sx, circle_polygon)
   mat_s <- values(masked_raster)
   mat_s <- mat_s[!is.na(mat_s)]
 
@@ -140,11 +145,24 @@ if (i == 22 | i==23) {
   n2_s <- n_s^2
   distm_s <- as.matrix(dist(mat_s))
   rao_index <- sum(distm_s) / n2_s
-}  
+
   # Store the Rao index in the vector
   sentinel_rao_indices[i] <- rao_index
-}
+} }
 
+# Create a combined data frame with centroids, Rao indices, Shannon indices, and number of trees
+biodiversity_sentinel <- data.frame(Longitude = centroids_df$Longitude, 
+                         Latitude = centroids_df$Latitude, 
+                         Rao_Index = sentinel_rao_indices, 
+                         Shannon_Index = shannon_indices, 
+                         Species_Richness = species_richness)
+# Save as CSV file
+write.csv(biodiversity_sentinel, file = "C:/Users/carlo/Desktop/tesi/biodiversity/risultati/Biodiversity_Sentinel.csv", row.names = FALSE)
+
+plot(biodiversity_sentinel$Rao_Index, biodiversity_sentinel$Shannon_Index, xlab = "Rao Index", ylab = "Shannon Index",
+     main = "Sentinel Rao Index vs Shannon Index" )
+plot(biodiversity_sentinel$Rao_Index, biodiversity_sentinel$Species_Richness, xlab = "Rao Index", ylab = "Species Richness",
+     main = "Sentinel Rao Index vs Species Richness" )
 
 
 
