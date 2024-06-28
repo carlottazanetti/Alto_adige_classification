@@ -2618,11 +2618,14 @@ dt_test <- dt[-idx_train]
 n_folds <- 10
 set.seed(321)
 folds <- createFolds(1:nrow(dt_train), k = n_folds)
-# Set the seed at each resampling iteration. Useful when running CV in parallel.
-seeds <- vector(mode = "list", length = n_folds + 1) # +1 for the final model
-for(i in 1:n_folds) seeds[[i]] <- sample.int(1000, n_folds)
-seeds[n_folds + 1] <- sample.int(1000, 1) # seed for the final model
 
+#Explanding mtry interval to consider more bands
+tuneGrid <- expand.grid(mtry = seq(2, 215, by = 10)) # intervallo da 2 a 244, con step di 10
+
+# Set the seed at each resampling iteration. Useful when running CV in parallel.
+seeds <- vector(mode = "list", length = n_folds + 1) 
+for(i in 1:n_folds) seeds[[i]] <- sample.int(1000, nrow(tuneGrid)) 
+seeds[n_folds + 1] <- sample.int(1000, 1) 
 
 ctrl <- trainControl(summaryFunction = multiClassSummary,
                      method = "cv",
@@ -2635,7 +2638,7 @@ ctrl <- trainControl(summaryFunction = multiClassSummary,
 
 model_rf <- caret::train(class ~ . , method = "rf", data = dt_train, #neural network o vector machine
                                                   importance = TRUE,
-                                                  tuneGrid = data.frame(mtry = c(2, 3, 4, 5, 8)),
+                                                  tuneGrid = tuneGrid,
                                                   trControl = ctrl)
 
 #saving the model
@@ -2770,11 +2773,14 @@ dt_test <- dt[-idx_train]
 n_folds <- 10
 set.seed(321)
 folds <- createFolds(1:nrow(dt_train), k = n_folds)
-# Set the seed at each resampling iteration. Useful when running CV in parallel.
-seeds <- vector(mode = "list", length = n_folds + 1) # +1 for the final model
-for(i in 1:n_folds) seeds[[i]] <- sample.int(1000, n_folds)
-seeds[n_folds + 1] <- sample.int(1000, 1) # seed for the final model
 
+#Explanding mtry interval to consider more bands
+tuneGrid <- expand.grid(mtry = seq(2, 215, by = 10)) # intervallo da 2 a 244, con step di 10
+
+# Set the seed at each resampling iteration. Useful when running CV in parallel.
+seeds <- vector(mode = "list", length = n_folds + 1) 
+for(i in 1:n_folds) seeds[[i]] <- sample.int(1000, nrow(tuneGrid)) 
+seeds[n_folds + 1] <- sample.int(1000, 1) 
 
 ctrl <- trainControl(summaryFunction = multiClassSummary,
                      method = "cv",
@@ -2787,7 +2793,7 @@ ctrl <- trainControl(summaryFunction = multiClassSummary,
 
 model_rf <- caret::train(class ~ . , method = "rf", data = dt_train, #neural network o vector machine
                                                   importance = TRUE,
-                                                  tuneGrid = data.frame(mtry = c(2, 3, 4, 5, 8)),
+                                                  tuneGrid = tuneGrid,
                                                   trControl = ctrl)
 
 #saving the model
@@ -2920,11 +2926,14 @@ dt_test <- dt[-idx_train]
 n_folds <- 10
 set.seed(321)
 folds <- createFolds(1:nrow(dt_train), k = n_folds)
-# Set the seed at each resampling iteration. Useful when running CV in parallel.
-seeds <- vector(mode = "list", length = n_folds + 1) # +1 for the final model
-for(i in 1:n_folds) seeds[[i]] <- sample.int(1000, n_folds)
-seeds[n_folds + 1] <- sample.int(1000, 1) # seed for the final model
 
+#Explanding mtry interval to consider more bands
+tuneGrid <- expand.grid(mtry = seq(2, 215, by = 10)) # intervallo da 2 a 244, con step di 10
+
+# Set the seed at each resampling iteration. Useful when running CV in parallel.
+seeds <- vector(mode = "list", length = n_folds + 1) 
+for(i in 1:n_folds) seeds[[i]] <- sample.int(1000, nrow(tuneGrid)) 
+seeds[n_folds + 1] <- sample.int(1000, 1) 
 
 ctrl <- trainControl(summaryFunction = multiClassSummary,
                      method = "cv",
@@ -2937,7 +2946,7 @@ ctrl <- trainControl(summaryFunction = multiClassSummary,
 
 model_rf <- caret::train(class ~ . , method = "rf", data = dt_train, #neural network o vector machine
                                                   importance = TRUE,
-                                                  tuneGrid = data.frame(mtry = c(2, 3, 4, 5, 8)),
+                                                  tuneGrid = tuneGrid,
                                                   trControl = ctrl)
 
 #saving the model
@@ -3069,10 +3078,14 @@ dt_test <- dt[-idx_train]
 n_folds <- 10
 set.seed(321)
 folds <- createFolds(1:nrow(dt_train), k = n_folds)
+
+#Explanding mtry interval to consider more bands
+tuneGrid <- expand.grid(mtry = seq(2, 215, by = 10)) # intervallo da 2 a 244, con step di 10
+
 # Set the seed at each resampling iteration. Useful when running CV in parallel.
-seeds <- vector(mode = "list", length = n_folds + 1) # +1 for the final model
-for(i in 1:n_folds) seeds[[i]] <- sample.int(1000, n_folds)
-seeds[n_folds + 1] <- sample.int(1000, 1) # seed for the final model
+seeds <- vector(mode = "list", length = n_folds + 1) 
+for(i in 1:n_folds) seeds[[i]] <- sample.int(1000, nrow(tuneGrid)) 
+seeds[n_folds + 1] <- sample.int(1000, 1) 
 
 
 ctrl <- trainControl(summaryFunction = multiClassSummary,
@@ -3086,7 +3099,7 @@ ctrl <- trainControl(summaryFunction = multiClassSummary,
 
 model_rf <- caret::train(class ~ . , method = "rf", data = dt_train, #neural network o vector machine
                                                   importance = TRUE,
-                                                  tuneGrid = data.frame(mtry = c(2, 3, 4, 5, 8)),
+                                                  tuneGrid =tuneGrid,
                                                   trControl = ctrl)
 
 #saving the model
