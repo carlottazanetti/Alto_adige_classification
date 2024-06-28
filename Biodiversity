@@ -29,8 +29,19 @@ enmap <- dropLayer(enmap, c(131:135))
 #Transforming into a brick since we have many layers
 enmap <- brick(enmap)
 
+# Define a function to standardize a single layer
+standardize_layer <- function(layer) {
+  values <- getValues(layer)
+  standardized_values <- scale(values, center = TRUE, scale = TRUE)
+  setValues(layer, standardized_values)
+}
+
+# Standardize each layer in the raster stack
+standardized_layers <- stack(lapply(1:nlayers(enmap), function(i) standardize_layer(enmap[[i]])))
+
+
 #performing the PCA
-enmap_pca <- rasterPCA(enmap)
+enmap_pca <- rasterPCA(standardized_layers)
 
 #Plot the map of the first principal component (PC1)
 plot(enmap_pca$map[[1]], main = "PC1")
@@ -48,19 +59,18 @@ centroids_list <- list()
 enmap_rao_indices <- numeric(length(circles_vect))
 
 # Iterate over each circle
-for (i in seq_along(circles_vect)) {
+for (i in seq_along(circles_filtered)) {
   # Extract the polygon representing the current circle
-  circle_polygon <- circles_vect[i]
+  circle_polygon <- circles_filtered[i,]
 
   # Calculate centroid of the circle
   centroid <- centroids(circles_vect[i])
   centroids_list[[i]] <- centroid
 
   # Use exact_extract to get the values of PC1_raster_layer within the circle polygon
-  #extracted_values <- exact_extract(PC1_raster_layer, circle_polygon)
-  mask1 <- mask(PC1_raster_layer, circle_polygon)
+  extracted_values <- exact_extract(PC1_raster_layer, circle_polygon)
 
-  mat_s <- values(mask1)
+  mat_s <- unlist(lapply(extracted_values, function(x) x$value))
   mat_s <- mat_s[!is.na(mat_s)]
 
   # Rao index calculation
@@ -113,15 +123,19 @@ ndvi_dx <-(b8_dx-b4_dx)/(b8_dx+b4_dx)
 
 sentinel_rao_indices <- numeric(length(circles_vect))
 
-# Iterate over each circle (here we need the shapefile, not the vector)
-for (i in seq_along(circles_vect)) {
+# Iterate over each circle 
+for (i in seq_along(circles_filtered)) {
  # Extract the polygon representing the current circle
   circle_polygon <- circles_filtered[i, ]
+
 if (circles_filtered@data[["PUNTO"]][i] == "GS0020" | circles_filtered@data[["PUNTO"]][i] == "GS0022") {
   # Calculate Rao index for the current circle
   # Crop and mask the raster with the polygon
-  masked_raster <- crop(ndvi_dx, circle_polygon)
-  mat_s <- values(masked_raster)
+  #Use exact_extract to get the values of ndvi within the circle polygon
+  extracted_values <- exact_extract(ndvi_dx, circle_polygon, fun = NULL)
+
+  #masked_raster <- crop(ndvi_dx, circle_polygon)
+  mat_s <- unlist(lapply(extracted_values, function(x) x$value))
   mat_s <- mat_s[!is.na(mat_s)]
 
   # Rao index calculation
@@ -136,8 +150,10 @@ if (circles_filtered@data[["PUNTO"]][i] == "GS0020" | circles_filtered@data[["PU
 } else {
   # Calculate Rao index for the current circle
   # Crop and mask the raster with the polygon
-  masked_raster <- crop(ndvi_sx, circle_polygon)
-  mat_s <- values(masked_raster)
+  extracted_values <- exact_extract(ndvi_sx, circle_polygon, fun = NULL)
+
+  #masked_raster <- crop(ndvi_sx, circle_polygon)
+  mat_s <- unlist(lapply(extracted_values, function(x) x$value))
   mat_s <- mat_s[!is.na(mat_s)]
 
   # Rao index calculation
