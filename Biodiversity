@@ -3,17 +3,12 @@ library(raster)
 library(rasterdiv)
 library(sp)
 library(terra)
+library(exactextractr)
 
 #INITIALIZING CIRCLES
 #Importing the areas where I want to calculate the pc
-cricles <- shapefile('C:/Users/carlo/Desktop/tesi/biodiversity/cerchi/circles.shp')
-
-# Removing the points where I don't have the data
-labels_to_remove <- c("GS0005", "GS0006", "GS0016","GS0017","GS0018", "GS0021", "GS0023")
-
-# Subset the shapefile to exclude these labels
-circles_filtered <- circles[!(circles@data[["PUNTO"]] %in% labels_to_remove), ]
-
+cricles <- shapefile('C:/Users/carlo/Desktop/tesi/biodiversity/cerchi/circles_forest.shp')
+prova <- shapefile('C:/Users/carlo/Desktop/tesi/biodiversity/cerchi/circles(1).shp')
 
 #CALCULATING RAO INDEX ON ENMAP'S PC1
 #importing Enmap image
@@ -50,7 +45,7 @@ plot(enmap_pca$map[[1]], main = "PC1")
 PC1_raster_layer <- enmap_pca$map[[1]] 
 
 # Convert SpatialPolygonsDataFrame to SpatVector (for mask function in Enmap)
-circles_vect <- vect(circles_filtered)
+circles_vect <- vect(circles)
 
 # Initialize a list to store the centroids
 centroids_list <- list() 
@@ -59,9 +54,9 @@ centroids_list <- list()
 enmap_rao_indices <- numeric(length(circles_vect))
 
 # Iterate over each circle
-for (i in seq_along(circles_filtered)) {
+for (i in seq_along(circles)) {
   # Extract the polygon representing the current circle
-  circle_polygon <- circles_filtered[i,]
+  circle_polygon <- circles[i,]
 
   # Calculate centroid of the circle
   centroid <- centroids(circles_vect[i])
@@ -88,8 +83,8 @@ centroids_df <- do.call(rbind, lapply(centroids_list, function(x) cbind(x[,1], x
 centroids_df <- as.data.frame(centroids_df)
 colnames(centroids_df) <- c("Longitude", "Latitude")
 
-species_richness <- c(2,2,3,4,2,5,2,3,2,4,3,4,5,3,2,2,1,1,4,3,4,3,2,2)
-shannon_indices <- c(0.487,0.181,0.556,1.22,0.362,1.32,0.234,0.66,0.358,1.35,0.381,0.238,1.15,0.83,0.377,0.349,0,0,0.734,0.958,0.988,0.271,0.554,0.219)
+species_richness <- c(2,2,3,4,2,5,2,4,3,4,5,3,2,4,3,4,3,2)
+shannon_indices <- c(0.487,0.181,0.556,1.22,0.362,1.32,0.358,1.35,0.381,0.238,1.15,0.83,0.377,0.734,0.958,0.988,0.271,0.554)
 
 # Create a combined data frame with centroids, Rao indices, Shannon indices, and number of trees
 biodiversity_enmap <- data.frame(Longitude = centroids_df$Longitude, 
