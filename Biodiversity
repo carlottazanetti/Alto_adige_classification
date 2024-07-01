@@ -27,8 +27,8 @@ enmap <-crop(rst_lst, extent(cropped_area))
 
 names(enmap) <- as.character(1:224)
 
-#dropping the layers with missing values
-enmap <- dropLayer(enmap, c(131:135))
+#dropping the layers with missing values and anomalous behaviour
+enmap <- dropLayer(enmap, paste0("X", c(131:135, 80:102)))
 
 #Transforming into a brick since we have many layers
 enmap <- brick(enmap)
@@ -104,6 +104,7 @@ biodiversity_enmap <- data.frame(Longitude = centroids_df$Longitude,
 # Save as CSV file
 write.csv(biodiversity_enmap, file = "C:/Users/carlo/Desktop/tesi/biodiversity/risultati/Biodiversity_Enmap.csv", row.names = FALSE)
 
+dev.off()
 plot(biodiversity_enmap$Rao_Index, biodiversity_enmap$Shannon_Index, xlab = "Rao Index", ylab = "Shannon Index",
      main = "EnMAP Rao Index vs Shannon Index" )
 plot(biodiversity_enmap$Rao_Index, biodiversity_enmap$Species_Richness, xlab = "Rao Index", ylab = "Species Richness",
