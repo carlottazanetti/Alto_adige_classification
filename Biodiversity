@@ -17,6 +17,12 @@ values_to_remove <- c("GS0004", "GS0005", "GS0006", "GS0007", "GS0008",
 # Filter the shapefile to exclude these values
 circles_filtered <- circles[!(circles@data[["PUNTO"]] %in% values_to_remove), ]
 
+# Convert SpatialPolygonsDataFrame to SpatVector 
+circles_vect <- vect(circles_filtered)
+
+# Initialize a list to store the centroids
+centroids_list <- list() 
+
 #CALCULATING RAO INDEX ON SENTINEL10M NDVI
 #here all the circles are in Sentinel_sx, except for circles GS0020 and GS0022 that are on sentinel_dx. But here we don't need these two
 b8 <- stack("C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_sx/GRANULE/L2A_T32TPS_A042919_20230910T101420/IMG_DATA/R10m/T32TPS_20230910T100601_B08_10m.jp2")
@@ -32,6 +38,10 @@ sentinel_rao_indices <- numeric(length(circles_vect))
 for (i in seq_along(circles_filtered)) {
  # Extract the polygon representing the current circle
   circle_polygon <- circles_filtered[i, ]
+
+  # Calculate centroid of the circle
+  centroid <- centroids(circles_vect[i])
+  centroids_list[[i]] <- centroid
 
   # Calculate Rao index for the current circle
   # Crop and mask the raster with the polygon
@@ -94,7 +104,6 @@ standardize_layer <- function(layer) {
 # Standardize each layer in the raster stack
 standardized_layers <- stack(lapply(1:nlayers(enmap), function(i) standardize_layer(enmap[[i]])))
 
-
 #performing the PCA
 enmap_pca <- rasterPCA(standardized_layers)
 
@@ -103,12 +112,6 @@ plot(enmap_pca$map[[1]], main = "PC1")
 
 #Calculating Rao index on the PC1
 PC1_raster_layer <- enmap_pca$map[[1]] 
-
-# Convert SpatialPolygonsDataFrame to SpatVector (for mask function in Enmap)
-circles_vect <- vect(circles_filtered)
-
-# Initialize a list to store the centroids
-centroids_list <- list() 
 
 # Initialize a vector to store Rao indices for each circle
 enmap_rao_indices <- numeric(length(circles_vect))
@@ -158,6 +161,15 @@ plot(biodiversity_enmap$Rao_Index, biodiversity_enmap$Shannon_Index, xlab = "Rao
 plot(biodiversity_enmap$Rao_Index, biodiversity_enmap$Species_Richness, xlab = "Rao Index", ylab = "Species Richness",
      main = "EnMAP Rao Index vs Species Richness" )
 
+
+#CALCULATING RAO INDEX ON ENMAP OPTICAL TRAITS
+#importing Enmap image
+rst_lst <- stack("C:/Users/carlo/Desktop/tesi/biodiversity/optical_signals/output.vrt")
+cropped_area <-shapefile('C:/Users/carlo/Desktop/tesi/biodiversity/crop.shp')
+opt_traits <-crop(rst_lst, extent(cropped_area))
+
+#Transforming into a brick since we have many layers
+opt_traits <- brick(opt_traits)
 
 
 
