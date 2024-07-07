@@ -164,7 +164,7 @@ plot(biodiversity_enmap$Rao_Index, biodiversity_enmap$Species_Richness, xlab = "
 
 #CALCULATING RAO INDEX ON ENMAP OPTICAL TRAITS
 #importing Enmap image
-rst_lst <- stack("C:/Users/carlo/Desktop/tesi/biodiversity/optical_signals/output.vrt")
+rst_lst <- rast("C:/Users/carlo/Desktop/tesi/biodiversity/optical_signals/output.vrt")
 cropped_area <-shapefile('C:/Users/carlo/Desktop/tesi/biodiversity/crop.shp')
 opt_traits <-crop(rst_lst, extent(cropped_area))
 
