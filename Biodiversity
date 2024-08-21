@@ -232,9 +232,50 @@ plot(biodiversity_enmap_opt_traits$rao_index_car, biodiversity_enmap_opt_traits$
 plot(biodiversity_enmap_opt_traits$rao_index_car, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index car", ylab = "Species Richness",
      main = "EnMAP Rao Index car\n vs Species Richness" )
 
+plot(biodiversity_enmap_opt_traits$rao_index_anth, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index anth", ylab = "Shannon Index",
+     main = "EnMAP Rao Index anth\n vs Shannon Index" )
+plot(biodiversity_enmap_opt_traits$rao_index_anth, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index anth", ylab = "Species Richness",
+     main = "EnMAP Rao Index anth\n vs Species Richness" )
 
+plot(biodiversity_enmap_opt_traits$rao_index_N, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index N", ylab = "Shannon Index",
+     main = "EnMAP Rao Index N\n vs Shannon Index" )
+plot(biodiversity_enmap_opt_traits$rao_index_N, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index N", ylab = "Species Richness",
+     main = "EnMAP Rao Index N\n vs Species Richness" )
 
+plot(biodiversity_enmap_opt_traits$rao_index_cab, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index cab", ylab = "Shannon Index",
+     main = "EnMAP Rao Index cab\n vs Shannon Index" )
+plot(biodiversity_enmap_opt_traits$rao_index_cab, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index cab", ylab = "Species Richness",
+     main = "EnMAP Rao Index cab\n vs Species Richness" )
 
+plot(biodiversity_enmap_opt_traits$rao_index_cbrown, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index cbrown", ylab = "Shannon Index",
+     main = "EnMAP Rao Index cbrown\n vs Shannon Index" )
+plot(biodiversity_enmap_opt_traits$rao_index_cbrown, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index cbrown", ylab = "Species Richness",
+     main = "EnMAP Rao Index cbrown\n vs Species Richness" )
+
+plot(biodiversity_enmap_opt_traits$rao_index_cm, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index cm", ylab = "Shannon Index",
+     main = "EnMAP Rao Index cm\n vs Shannon Index" )
+plot(biodiversity_enmap_opt_traits$rao_index_cm, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index cm", ylab = "Species Richness",
+     main = "EnMAP Rao Index cm\n vs Species Richness" )
+
+plot(biodiversity_enmap_opt_traits$rao_index_LAI, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index LAI", ylab = "Shannon Index",
+     main = "EnMAP Rao Index LAI\n vs Shannon Index" )
+plot(biodiversity_enmap_opt_traits$rao_index_LAI, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index LAI", ylab = "Species Richness",
+     main = "EnMAP Rao Index LAI\n vs Species Richness" )
+
+plot(biodiversity_enmap_opt_traits$rao_index_cw, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index cw", ylab = "Shannon Index",
+     main = "EnMAP Rao Index cw\n vs Shannon Index" )
+plot(biodiversity_enmap_opt_traits$rao_index_cw, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index cw", ylab = "Species Richness",
+     main = "EnMAP Rao Index cw\n vs Species Richness" )
+
+plot(biodiversity_enmap_opt_traits$rao_index_LIDF, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index LIDF", ylab = "Shannon Index",
+     main = "EnMAP Rao Index LIDF\n vs Shannon Index" )
+plot(biodiversity_enmap_opt_traits$rao_index_LIDF, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index LIDF", ylab = "Species Richness",
+     main = "EnMAP Rao Index LIDF\n vs Species Richness" )
+
+plot(biodiversity_enmap_opt_traits$rao_index_hspot, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index hspot", ylab = "Shannon Index",
+     main = "EnMAP Rao Index hspot\n vs Shannon Index" )
+plot(biodiversity_enmap_opt_traits$rao_index_hspot, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index hspot", ylab = "Species Richness",
+     main = "EnMAP Rao Index hspot\n vs Species Richness" )
 
 
 
