@@ -78,6 +78,7 @@ plot(biodiversity_sentinel$Rao_Index, biodiversity_sentinel$Shannon_Index, xlab 
 plot(biodiversity_sentinel$Rao_Index, biodiversity_sentinel$Species_Richness, xlab = "Rao Index", ylab = "Species Richness",
      main = "Sentinel Rao Index vs Species Richness" )
 
+
 #CALCULATING RAO INDEX ON ENMAP'S PC1
 #importing Enmap image
 suppressWarnings({
@@ -164,12 +165,74 @@ plot(biodiversity_enmap$Rao_Index, biodiversity_enmap$Species_Richness, xlab = "
 
 #CALCULATING RAO INDEX ON ENMAP OPTICAL TRAITS
 #importing Enmap image
-rst_lst <- rast("C:/Users/carlo/Desktop/tesi/biodiversity/optical_signals/output.vrt")
+rst_lst <- rast("C:/Users/carlo/Desktop/tesi/biodiversity/optical_signals/enmap_output_LUT.bsq")
 cropped_area <-shapefile('C:/Users/carlo/Desktop/tesi/biodiversity/crop.shp')
 opt_traits <-crop(rst_lst, extent(cropped_area))
 
 #Transforming into a brick since we have many layers
 opt_traits <- brick(opt_traits)
+
+
+#Initialize the vector where I will store the Rao indices for each layer
+rao_indices <- numeric(length(circles_vect))
+
+for (k in opt_traits@data@names){
+# Initialize a vector to store Rao indices for each optical trait
+vector_name <- paste0("rao_index_", k)
+
+# Iterate over each circle
+for (i in seq_along(circles_filtered)) {
+  # Extract the polygon representing the current circle
+  circle_polygon <- circles_filtered[i,]
+
+  # Calculate centroid of the circle
+  centroid <- centroids(circles_vect[i])
+  centroids_list[[i]] <- centroid
+
+  # Use exact_extract to get the values of the layer within the circle polygon
+  extracted_values <- exact_extract(opt_traits[[k]], circle_polygon)
+
+  mat_s <- unlist(lapply(extracted_values, function(x) x$value))
+  mat_s <- mat_s[!is.na(mat_s)]
+
+  # Rao index calculation
+  n_s <- length(mat_s)
+  n2_s <- n_s^2
+  distm_s <- as.matrix(dist(mat_s))
+  rao_index <- sum(distm_s) / n2_s
+
+  # Store the Rao index in the vector
+  enmap_rao_indices[i] <- rao_index
+}
+assign(vector_name, enmap_rao_indices)
+
+cat(vector_name, "vector created\n")
+}
+
+# Combine centroids into a data frame
+centroids_df <- do.call(rbind, lapply(centroids_list, function(x) cbind(x[,1], x[,2])))
+centroids_df <- as.data.frame(centroids_df)
+colnames(centroids_df) <- c("Longitude", "Latitude")
+
+# Create a combined data frame with centroids, Rao indices (only keeping the ones that are statistically significant), Shannon indices, and number of trees
+biodiversity_enmap_opt_traits <- data.frame(Longitude = centroids_df$Longitude, 
+                         Latitude = centroids_df$Latitude, rao_index_car=rao_index_car, rao_index_anth = rao_index_anth,
+                         rao_index_N = rao_index_N, rao_index_cab=rao_index_cab, rao_index_cbrown=rao_index_cbrown, 
+                         rao_index_cm=rao_index_cm, rao_index_LAI=rao_index_LAI, rao_index_cw=rao_index_cw,
+                         rao_index_LIDF=rao_index_LIDF, rao_index_hspot=rao_index_hspot,
+                         Shannon_Index = shannon_indices, 
+                         Species_Richness = species_richness)
+# Save as CSV file
+write.csv(biodiversity_enmap_opt_traits, file = "C:/Users/carlo/Desktop/tesi/biodiversity/risultati/Biodiversity_Enmap_Opt_Traits.csv", row.names = FALSE)
+
+dev.off()
+par(mfrow = c(1, 2))
+plot(biodiversity_enmap_opt_traits$rao_index_car, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index car", ylab = "Shannon Index",
+     main = "EnMAP Rao Index car\n vs Shannon Index" )
+plot(biodiversity_enmap_opt_traits$rao_index_car, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index car", ylab = "Species Richness",
+     main = "EnMAP Rao Index car\n vs Species Richness" )
+
+
 
 
 
