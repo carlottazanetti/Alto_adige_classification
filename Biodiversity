@@ -23,6 +23,11 @@ circles_vect <- vect(circles_filtered)
 # Initialize a list to store the centroids
 centroids_list <- list() 
 
+species_richness <- c(2,2,3,4,2,3,2,4,3,4,5,3,2, 4,3,4,3,2)
+shannon_indices <- c(0.487,0.181,0.556,1.22,0.362,0.66,0.358,1.35,0.381,0.238,1.15,0.83,0.377,0.734,0.958,0.988,0.271,0.554)
+
+
+
 #CALCULATING RAO INDEX ON SENTINEL10M NDVI
 #here all the circles are in Sentinel_sx, except for circles GS0020 and GS0022 that are on sentinel_dx. But here we don't need these two
 b8 <- stack("C:/Users/carlo/Desktop/tesi/alto_adige/sentinel2/sentinel_sx/GRANULE/L2A_T32TPS_A042919_20230910T101420/IMG_DATA/R10m/T32TPS_20230910T100601_B08_10m.jp2")
@@ -60,9 +65,6 @@ for (i in seq_along(circles_filtered)) {
   # Store the Rao index in the vector
   sentinel_rao_indices[i] <- rao_index
 } 
-
-species_richness <- c(2,2,3,4,2,3,2,4,3,4,5,3,2, 4,3,4,3,2)
-shannon_indices <- c(0.487,0.181,0.556,1.22,0.362,0.66,0.358,1.35,0.381,0.238,1.15,0.83,0.377,0.734,0.958,0.988,0.271,0.554)
 
 # Create a combined data frame with centroids, Rao indices, Shannon indices, and number of trees
 biodiversity_sentinel <- data.frame(Longitude = centroids_df$Longitude, 
@@ -165,7 +167,7 @@ plot(biodiversity_enmap$Rao_Index, biodiversity_enmap$Species_Richness, xlab = "
 
 #CALCULATING RAO INDEX ON ENMAP OPTICAL TRAITS
 #importing Enmap image
-rst_lst <- rast("C:/Users/carlo/Desktop/tesi/biodiversity/optical_signals/enmap_output_LUT.bsq")
+rst_lst <- rast("C:/Users/carlo/Desktop/tesi/biodiversity/optical_signals/enmap_output_LUT_gaussian.bsq")
 cropped_area <-shapefile('C:/Users/carlo/Desktop/tesi/biodiversity/crop.shp')
 opt_traits <-crop(rst_lst, extent(cropped_area))
 
@@ -178,7 +180,7 @@ rao_indices <- numeric(length(circles_vect))
 
 for (k in opt_traits@data@names){
 # Initialize a vector to store Rao indices for each optical trait
-vector_name <- paste0("rao_index_", k)
+vector_rao_name <- paste0("rao_index_", k)
 
 # Iterate over each circle
 for (i in seq_along(circles_filtered)) {
@@ -204,9 +206,9 @@ for (i in seq_along(circles_filtered)) {
   # Store the Rao index in the vector
   enmap_rao_indices[i] <- rao_index
 }
-assign(vector_name, enmap_rao_indices)
+assign(vector_rao_name, enmap_rao_indices)
 
-cat(vector_name, "vector created\n")
+cat(vector_rao_name, "vector created\n")
 }
 
 # Combine centroids into a data frame
@@ -223,59 +225,132 @@ biodiversity_enmap_opt_traits <- data.frame(Longitude = centroids_df$Longitude,
                          Shannon_Index = shannon_indices, 
                          Species_Richness = species_richness)
 # Save as CSV file
-write.csv(biodiversity_enmap_opt_traits, file = "C:/Users/carlo/Desktop/tesi/biodiversity/risultati/Biodiversity_Enmap_Opt_Traits.csv", row.names = FALSE)
+write.csv(biodiversity_enmap_opt_traits, file = "C:/Users/carlo/Desktop/tesi/biodiversity/risultati/Biodiversity_Enmap_Opt_Traits_Gaus.csv", row.names = FALSE)
+
+#Calculating the R^2 value 
+for (k in 3:12){
+# Calculate R^2 between Shannon Index and Rao Index
+lm_shannon <- lm(biodiversity_enmap_opt_traits[[13]] ~ biodiversity_enmap_opt_traits[[k]])
+r2_shannon <- summary(lm_shannon)$r.squared
+R2_shannonVSrao_name <- paste0("R2_Shannon_VS_", colnames(biodiversity_enmap_opt_traits)[k])
+assign(R2_shannonVSrao_name, r2_shannon)
+
+# Calculate R^2 Species Richness and Rao Index
+lm_species <- lm(biodiversity_enmap_opt_traits[[14]] ~ biodiversity_enmap_opt_traits[[k]])
+r2_species <- summary(lm_species)$r.squared
+R2_speciesVSrao_name <- paste0("R2_Species_VS_", colnames(biodiversity_enmap_opt_traits)[k])
+assign(R2_speciesVSrao_name, r2_species)
+}
+
 
 dev.off()
-par(mfrow = c(1, 2))
-plot(biodiversity_enmap_opt_traits$rao_index_car, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index car", ylab = "Shannon Index",
-     main = "EnMAP Rao Index car\n vs Shannon Index" )
-plot(biodiversity_enmap_opt_traits$rao_index_car, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index car", ylab = "Species Richness",
-     main = "EnMAP Rao Index car\n vs Species Richness" )
-
+par(mfrow=c(1,2))
 plot(biodiversity_enmap_opt_traits$rao_index_anth, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index anth", ylab = "Shannon Index",
      main = "EnMAP Rao Index anth\n vs Shannon Index" )
-plot(biodiversity_enmap_opt_traits$rao_index_anth, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index anth", ylab = "Species Richness",
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_anth), y = 0.9*max(biodiversity_enmap_opt_traits$Shannon_Index), 
+     labels = paste("R^2 =", round(R2_Shannon_VS_rao_index_anth, 3)), 
+     pos = 4)
+plot(biodiversity_enmap_opt_traits$rao_index_anth, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index anth", 
+    ylab = "Species Richness",
      main = "EnMAP Rao Index anth\n vs Species Richness" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_anth), y = 0.9*max(biodiversity_enmap_opt_traits$Species_Richness), 
+     labels = paste("R^2 =", round(R2_Species_VS_rao_index_anth, 3)), 
+     pos = 4)
+
 
 plot(biodiversity_enmap_opt_traits$rao_index_N, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index N", ylab = "Shannon Index",
      main = "EnMAP Rao Index N\n vs Shannon Index" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_N), y = 0.9*max(biodiversity_enmap_opt_traits$Shannon_Index), 
+     labels = paste("R^2 =", round(R2_Shannon_VS_rao_index_N, 3)), 
+     pos = 4)
 plot(biodiversity_enmap_opt_traits$rao_index_N, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index N", ylab = "Species Richness",
      main = "EnMAP Rao Index N\n vs Species Richness" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_N), y = 0.9*max(biodiversity_enmap_opt_traits$Species_Richness), 
+     labels = paste("R^2 =", round(R2_Species_VS_rao_index_N, 3)), 
+     pos = 4)
+
 
 plot(biodiversity_enmap_opt_traits$rao_index_cab, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index cab", ylab = "Shannon Index",
      main = "EnMAP Rao Index cab\n vs Shannon Index" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_cab), y = 0.9*max(biodiversity_enmap_opt_traits$Shannon_Index), 
+     labels = paste("R^2 =", round(R2_Shannon_VS_rao_index_cab, 3)), 
+     pos = 4)
 plot(biodiversity_enmap_opt_traits$rao_index_cab, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index cab", ylab = "Species Richness",
      main = "EnMAP Rao Index cab\n vs Species Richness" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_cab), y = 0.9*max(biodiversity_enmap_opt_traits$Species_Richness), 
+     labels = paste("R^2 =", round(R2_Species_VS_rao_index_cab, 3)), 
+     pos = 4)
+
 
 plot(biodiversity_enmap_opt_traits$rao_index_cbrown, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index cbrown", ylab = "Shannon Index",
      main = "EnMAP Rao Index cbrown\n vs Shannon Index" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_cbrown), y = 0.9*max(biodiversity_enmap_opt_traits$Shannon_Index), 
+     labels = paste("R^2 =", round(R2_Shannon_VS_rao_index_cbrown, 3)), 
+     pos = 4)
 plot(biodiversity_enmap_opt_traits$rao_index_cbrown, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index cbrown", ylab = "Species Richness",
      main = "EnMAP Rao Index cbrown\n vs Species Richness" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_cbrown), y = 0.9*max(biodiversity_enmap_opt_traits$Species_Richness), 
+     labels = paste("R^2 =", round(R2_Species_VS_rao_index_cbrown, 3)), 
+     pos = 4)
+
 
 plot(biodiversity_enmap_opt_traits$rao_index_cm, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index cm", ylab = "Shannon Index",
      main = "EnMAP Rao Index cm\n vs Shannon Index" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_cm), y = 0.9*max(biodiversity_enmap_opt_traits$Shannon_Index), 
+     labels = paste("R^2 =", round(R2_Shannon_VS_rao_index_cm, 3)), 
+     pos = 4)
 plot(biodiversity_enmap_opt_traits$rao_index_cm, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index cm", ylab = "Species Richness",
      main = "EnMAP Rao Index cm\n vs Species Richness" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_cm), y = 0.9*max(biodiversity_enmap_opt_traits$Species_Richness), 
+     labels = paste("R^2 =", round(R2_Species_VS_rao_index_cm, 3)), 
+     pos = 4)
+
 
 plot(biodiversity_enmap_opt_traits$rao_index_LAI, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index LAI", ylab = "Shannon Index",
      main = "EnMAP Rao Index LAI\n vs Shannon Index" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_LAI), y = 0.9*max(biodiversity_enmap_opt_traits$Shannon_Index), 
+     labels = paste("R^2 =", round(R2_Shannon_VS_rao_index_LAI, 3)), 
+     pos = 4)
 plot(biodiversity_enmap_opt_traits$rao_index_LAI, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index LAI", ylab = "Species Richness",
      main = "EnMAP Rao Index LAI\n vs Species Richness" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_LAI), y = 0.9*max(biodiversity_enmap_opt_traits$Species_Richness), 
+     labels = paste("R^2 =", round(R2_Species_VS_rao_index_LAI, 3)), 
+     pos = 4)
+
 
 plot(biodiversity_enmap_opt_traits$rao_index_cw, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index cw", ylab = "Shannon Index",
      main = "EnMAP Rao Index cw\n vs Shannon Index" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_cw), y = 0.9*max(biodiversity_enmap_opt_traits$Shannon_Index), 
+     labels = paste("R^2 =", round(R2_Shannon_VS_rao_index_cw, 3)), 
+     pos = 4)
 plot(biodiversity_enmap_opt_traits$rao_index_cw, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index cw", ylab = "Species Richness",
      main = "EnMAP Rao Index cw\n vs Species Richness" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_cw), y = 0.9*max(biodiversity_enmap_opt_traits$Species_Richness), 
+     labels = paste("R^2 =", round(R2_Species_VS_rao_index_cw, 3)), 
+     pos = 4)
+
 
 plot(biodiversity_enmap_opt_traits$rao_index_LIDF, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index LIDF", ylab = "Shannon Index",
      main = "EnMAP Rao Index LIDF\n vs Shannon Index" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_LIDF), y = 0.9*max(biodiversity_enmap_opt_traits$Shannon_Index), 
+     labels = paste("R^2 =", round(R2_Shannon_VS_rao_index_LIDF, 3)), 
+     pos = 4)
 plot(biodiversity_enmap_opt_traits$rao_index_LIDF, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index LIDF", ylab = "Species Richness",
      main = "EnMAP Rao Index LIDF\n vs Species Richness" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_LIDF), y = 0.9*max(biodiversity_enmap_opt_traits$Species_Richness), 
+     labels = paste("R^2 =", round(R2_Species_VS_rao_index_LIDF, 3)), 
+     pos = 4)
 
 plot(biodiversity_enmap_opt_traits$rao_index_hspot, biodiversity_enmap_opt_traits$Shannon_Index, xlab = "Rao Index hspot", ylab = "Shannon Index",
      main = "EnMAP Rao Index hspot\n vs Shannon Index" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_hspot), y = 0.9*max(biodiversity_enmap_opt_traits$Shannon_Index), 
+     labels = paste("R^2 =", round(R2_Shannon_VS_rao_index_hspot, 3)), 
+     pos = 4)
 plot(biodiversity_enmap_opt_traits$rao_index_hspot, biodiversity_enmap_opt_traits$Species_Richness, xlab = "Rao Index hspot", ylab = "Species Richness",
      main = "EnMAP Rao Index hspot\n vs Species Richness" )
+text(x = 0.25*max(biodiversity_enmap_opt_traits$rao_index_hspot), y = 0.9*max(biodiversity_enmap_opt_traits$Species_Richness), 
+     labels = paste("R^2 =", round(R2_Species_VS_rao_index_hspot, 3)), 
+     pos = 4)
 
 
 
