@@ -165,9 +165,10 @@ plot(biodiversity_enmap$Rao_Index, biodiversity_enmap$Species_Richness, xlab = "
      main = "EnMAP Rao Index vs Species Richness" )
 
 
+
 #CALCULATING RAO INDEX ON ENMAP OPTICAL TRAITS
 #importing Enmap image
-rst_lst <- rast("C:/Users/carlo/Desktop/tesi/biodiversity/optical_signals/enmap_output_LUT_gaussian.bsq")
+rst_lst <- rast("C:/Users/carlo/Desktop/tesi/biodiversity/optical_signals/enmap_output_LUT2.bsq")
 cropped_area <-shapefile('C:/Users/carlo/Desktop/tesi/biodiversity/crop.shp')
 opt_traits <-crop(rst_lst, extent(cropped_area))
 
@@ -225,7 +226,7 @@ biodiversity_enmap_opt_traits <- data.frame(Longitude = centroids_df$Longitude,
                          Shannon_Index = shannon_indices, 
                          Species_Richness = species_richness)
 # Save as CSV file
-write.csv(biodiversity_enmap_opt_traits, file = "C:/Users/carlo/Desktop/tesi/biodiversity/risultati/Biodiversity_Enmap_Opt_Traits_Gaus.csv", row.names = FALSE)
+write.csv(biodiversity_enmap_opt_traits, file = "C:/Users/carlo/Desktop/tesi/biodiversity/risultati/Biodiversity_Enmap_Opt_Traits_Gaus_2.csv", row.names = FALSE)
 
 #Calculating the R^2 value 
 for (k in 3:12){
