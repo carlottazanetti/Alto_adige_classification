@@ -75,10 +75,25 @@ biodiversity_sentinel <- data.frame(Longitude = centroids_df$Longitude,
 # Save as CSV file
 write.csv(biodiversity_sentinel, file = "C:/Users/carlo/Desktop/tesi/biodiversity/risultati/Biodiversity_Sentinel.csv", row.names = FALSE)
 
+#Calculating the R^2 value Shannon Index and Rao Index
+lm_shannon <- lm(biodiversity_sentinel$Shannon_Index ~ biodiversity_sentinel$Rao_Index)
+r2_shannon <- summary(lm_shannon)$r.squared
+
+# Calculate R^2 Species Richness and Rao Index
+lm_species <- lm(biodiversity_sentinel$Species_Richness ~ biodiversity_sentinel$Rao_Index)
+r2_species <- summary(lm_species)$r.squared
+
+
 plot(biodiversity_sentinel$Rao_Index, biodiversity_sentinel$Shannon_Index, xlab = "Rao Index", ylab = "Shannon Index",
      main = "Sentinel Rao Index vs Shannon Index" )
+text(x = 0.25*max(biodiversity_sentinel$Rao_Index), y = 0.9*max(biodiversity_sentinel$Shannon_Index), 
+     labels = paste("R^2 =", round(r2_shannon, 3)), 
+     pos = 4)
 plot(biodiversity_sentinel$Rao_Index, biodiversity_sentinel$Species_Richness, xlab = "Rao Index", ylab = "Species Richness",
      main = "Sentinel Rao Index vs Species Richness" )
+text(x = 0.25*max(biodiversity_sentinel$Rao_Index), y = 0.9*max(biodiversity_sentinel$Species_Richness), 
+     labels = paste("R^2 =", round(r2_species, 3)), 
+     pos = 4)
 
 
 #CALCULATING RAO INDEX ON ENMAP'S PC1
